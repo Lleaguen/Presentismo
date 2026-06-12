@@ -1,0 +1,235 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  font-size: 0.83rem;
+}
+
+/* ── Encabezados ── */
+.th {
+  background: var(--ocasa-blue-deep);
+  color: #fff;
+  padding: 0.6rem 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.78rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  vertical-align: middle;
+}
+
+.thAuto    { background: #007A9A; }
+.thGroup   { background: var(--ocasa-blue); }
+.thGroupNoche { background: #1D5C8A; }
+.thSub     { background: #0095CC; font-size: 0.73rem; }
+.thSubNoche{ background: #2471A3; font-size: 0.73rem; }
+.thInsight { background: #0F4C70; min-width: 220px; }
+
+.autoTag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-top: 2px;
+}
+
+/* ── Celdas ── */
+.td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+  border-right: 1px solid var(--gray-200);
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* ── Etiqueta de horario ── */
+.slotLabel {
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  color: var(--ocasa-blue-deep);
+  background: var(--ocasa-blue-pale);
+}
+
+.slotDia {
+  color: #0080BB;
+  background: #E0F3FB !important;
+  border-left: 3px solid var(--ocasa-blue);
+}
+
+.slotNoche {
+  color: #1D5C8A;
+  background: #DBEAFE !important;
+  border-left: 3px solid #1D5C8A;
+}
+
+/* ── Filas por bloque — colores de fondo suaves ── */
+.rowEven  { background: #fff; }
+.rowOdd   { background: var(--gray-50); }
+.rowDia   { background: #F0F9FF; }
+.rowNoche { background: #EFF6FF; }
+
+.rowEven:hover, .rowOdd:hover, .rowDia:hover, .rowNoche:hover {
+  background: var(--ocasa-blue-pale);
+}
+
+/* ── Input pedidos ── */
+.numInput {
+  width: 60px;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.3rem;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.numInput:focus {
+  border-color: var(--ocasa-blue);
+  box-shadow: 0 0 0 3px rgba(0,174,239,0.15);
+}
+
+.numInput::-webkit-inner-spin-button,
+.numInput::-webkit-outer-spin-button { -webkit-appearance: none; }
+.numInput[type=number] { -moz-appearance: textfield; }
+
+/* ── Automáticos ── */
+.autoCell {
+  font-weight: 600;
+  color: var(--ocasa-blue-deep);
+  background: var(--ocasa-blue-pale) !important;
+}
+
+.presentes {
+  font-weight: 700;
+  color: var(--green);
+  background: var(--green-light) !important;
+}
+
+/* ── Diferencia ── */
+.diffPos  { color: var(--green); font-weight: 700; }
+.diffNeg  { color: var(--red);   font-weight: 700; }
+.diffZero { color: var(--gray-400); }
+
+/* ── Porcentaje ── */
+.pctHigh { background: var(--green-light)  !important; color: var(--green);  font-weight: 700; }
+.pctMid  { background: var(--yellow-light) !important; color: var(--yellow); font-weight: 700; }
+.pctLow  { background: var(--red-light)    !important; color: var(--red);    font-weight: 700; }
+
+/* ── Bloques fusionados (columnas de totales por turno) ── */
+.blockCell {
+  background: #E0F3FB !important;
+  font-weight: 700;
+  color: var(--ocasa-blue-deep);
+  vertical-align: middle;
+  min-width: 90px;
+}
+
+.blockCellNoche {
+  background: #DBEAFE !important;
+  font-weight: 700;
+  color: #1E3A5F;
+  vertical-align: middle;
+  min-width: 90px;
+}
+
+.blockValue {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.blockTag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+
+.blockSub {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+.noBlock {
+  background: var(--gray-50);
+  color: var(--gray-200);
+}
+
+/* ── Carrusel ── */
+.insightCell {
+  background: #F0FAFF !important;
+  vertical-align: top;
+  min-width: 240px;
+  padding: 0.5rem !important;
+}
+
+/* ── Totales ── */
+.totalRow { background: var(--ocasa-blue-deep); }
+
+.totalLabel {
+  background: var(--ocasa-blue-deep) !important;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+.totalCell {
+  background: var(--ocasa-blue-dark) !important;
+  color: #fff;
+  font-weight: 700;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+.totalRow .pctHigh { background: #166534 !important; color: #fff; }
+.totalRow .pctMid  { background: #92400E !important; color: #fff; }
+.totalRow .pctLow  { background: #991B1B !important; color: #fff; }
+.totalRow .diffPos { color: #86EFAC; }
+.totalRow .diffNeg { color: #FCA5A5; }
+
+/* ── Leyenda ── */
+.legend {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.legendItem {
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.legendItem.pctHigh { background: var(--green-light);  color: var(--green);  border-color: #BBF7D0; }
+.legendItem.pctMid  { background: var(--yellow-light); color: var(--yellow); border-color: #FDE68A; }
+.legendItem.pctLow  { background: var(--red-light);    color: var(--red);    border-color: #FECACA; }
+.legendItemCsv      { background: var(--ocasa-blue-light); color: var(--ocasa-blue-deep); border-color: #BAE6FD; }

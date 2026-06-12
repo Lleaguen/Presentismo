@@ -1,0 +1,161 @@
+.carousel {
+  background: var(--ocasa-blue-pale);
+  border: 1px solid #BAE6FD;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+/* ── Header con título, tabs y auto-dot ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.icon { font-size: 1rem; }
+
+.title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ocasa-blue-deep);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  border: 1.5px solid #BAE6FD;
+  background: #fff;
+  color: var(--gray-600);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tab:hover {
+  border-color: var(--ocasa-blue);
+  color: var(--ocasa-blue-dark);
+}
+
+.tabActive {
+  background: var(--ocasa-blue);
+  border-color: var(--ocasa-blue);
+  color: #fff;
+}
+
+/* ── Contenido ── */
+.body {
+  min-height: 80px;
+}
+
+.empty {
+  font-size: 0.82rem;
+  color: var(--gray-400);
+  font-style: italic;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+/* ── Grid de ítems (layout horizontal) ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.6rem;
+}
+
+.gridItem {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.itemLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.itemBarWrap {
+  height: 5px;
+  background: var(--gray-200);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.itemBar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.itemFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.itemVal {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.itemSub {
+  font-size: 0.68rem;
+  color: var(--gray-400);
+}
+
+/* ── Desvío acumulado ── */
+.desvioGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.6rem;
+}
+
+.desvioItem {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.desvioLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.desvioVal {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+/* ── Colores ── */
+.valPos { color: var(--green); }
+.valMid { color: var(--yellow); }
+.valNeg { color: var(--red); }

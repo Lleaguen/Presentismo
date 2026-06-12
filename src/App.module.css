@@ -1,0 +1,154 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--gray-100);
+}
+
+/* ── Header ── */
+.header {
+  background: var(--ocasa-blue);
+  border-bottom: none;
+  padding: 0 2rem;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,174,239,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  height: 80px;
+  width: auto;
+  display: block;
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.35);
+}
+
+.appTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.appSubtitle {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+  margin-top: 1px;
+}
+
+.headerBadge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+}
+
+/* ── Main content ── */
+.main {
+  flex: 1;
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 100%;
+}
+
+/* ── Section card ── */
+.sectionCard {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+}
+
+.sectionIcon {
+  width: 30px;
+  height: 30px;
+  background: var(--ocasa-blue-light);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.sectionBody {
+  padding: 1.25rem 1.5rem;
+}
+
+/* ── Estado de carga y error ── */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.loading {
+  font-size: 0.85rem;
+  color: var(--ocasa-blue-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ocasa-blue-light);
+  border-top-color: var(--ocasa-blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  font-size: 0.85rem;
+  color: var(--red);
+  background: var(--red-light);
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}

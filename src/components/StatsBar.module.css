@@ -1,0 +1,75 @@
+.bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cardDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-200);
+}
+
+.cardDotBlue   { background: var(--ocasa-blue); }
+.cardDotGreen  { background: var(--green); }
+.cardDotRed    { background: var(--red); }
+
+.value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gray-800);
+  line-height: 1;
+}
+
+.valueBlue  { color: var(--ocasa-blue-dark); }
+.valueGreen { color: var(--green); }
+.valueRed   { color: var(--red); }
+
+.cardHint {
+  font-size: 0.72rem;
+  color: var(--gray-400);
+}
+
+/* Barra de progreso */
+.progressWrap {
+  margin-top: 0.5rem;
+  height: 4px;
+  background: var(--gray-200);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--ocasa-blue);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.progressBarGreen { background: var(--green); }
+.progressBarRed   { background: var(--red); }

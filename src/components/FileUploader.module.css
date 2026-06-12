@@ -1,0 +1,77 @@
+.dropZone {
+  border: 2px dashed var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--gray-50);
+  transition: background 0.2s, border-color 0.2s;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.dropZone:hover,
+.dragging {
+  background: var(--ocasa-blue-pale);
+  border-color: var(--ocasa-blue);
+}
+
+.hiddenInput { display: none; }
+
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  background: var(--ocasa-blue-light);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.dropZone:hover .iconWrap,
+.dragging .iconWrap {
+  background: var(--ocasa-blue);
+}
+
+.textGroup {
+  text-align: left;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  margin-top: 2px;
+}
+
+.fileLoaded {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fileName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.changeBtn {
+  font-size: 0.75rem;
+  color: var(--ocasa-blue-dark);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}

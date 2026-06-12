@@ -1,0 +1,59 @@
+/* ─── Variables de marca Ocasa ─────────────────────────────────── */
+:root {
+  --ocasa-blue:       #00AEEF;
+  --ocasa-blue-dark:  #0080BB;
+  --ocasa-blue-deep:  #005A8E;
+  --ocasa-blue-light: #E5F6FD;
+  --ocasa-blue-pale:  #F0FAFF;
+
+  --gray-50:  #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-400: #94A3B8;
+  --gray-600: #475569;
+  --gray-800: #1E293B;
+
+  --green:      #16A34A;
+  --green-light:#DCFCE7;
+  --red:        #DC2626;
+  --red-light:  #FEE2E2;
+  --yellow:     #D97706;
+  --yellow-light:#FEF3C7;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+}
+
+/* ─── Reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--gray-100);
+  color: var(--gray-800);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Tipografía base ────────────────────────────────────────────── */
+h1, h2, h3 { line-height: 1.2; }
+
+button { font-family: inherit; cursor: pointer; }
+input  { font-family: inherit; }
+
+/* ─── Scrollbar custom ───────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-100); }
+::-webkit-scrollbar-thumb { background: #B0D8F0; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ocasa-blue); }
