@@ -85,10 +85,11 @@ export default function App() {
         </div>
 
         {/* 3 — Tabla por franja horaria */}
-        <div className={styles.sectionCard}>
+        <div className={styles.sectionCard} id="schedule-section">
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>🕐</div>
             <span className={styles.sectionTitle}>Presentismo por franja horaria</span>
+            <img src={ocasaLogo} alt="Ocasa" className={styles.sectionLogo} />
           </div>
           <div className={styles.sectionBody}>
             <ScheduleTable excelRows={rows} />

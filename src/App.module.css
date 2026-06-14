@@ -111,6 +111,13 @@
   padding: 1.25rem 1.5rem;
 }
 
+.sectionLogo {
+  height: 28px;
+  width: auto;
+  margin-left: auto;
+  display: block;
+}
+
 /* ── Estado de carga y error ── */
 .statusRow {
   display: flex;

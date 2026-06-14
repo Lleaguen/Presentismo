@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef } from 'react'
 import { SCHEDULE_HOURS, matchSlot } from '../utils/scheduleConfig'
 import InsightCarousel from './InsightCarousel'
+import ocasaLogo from '../assets/Ocasa.png'
 import styles from './ScheduleTable.module.css'
 
 export default function ScheduleTable({ excelRows }) {
@@ -39,11 +40,15 @@ export default function ScheduleTable({ excelRows }) {
     return counts
   }, [excelRows])
 
+  // Presentes: tienen credencial, asignados al slot de su hora citada
   const presentesPorSlot = useMemo(() => {
     const counts = {}
     SCHEDULE_HOURS.forEach((s) => { counts[s.value] = 0 })
     excelRows.forEach((row) => {
-      const hora = String(row.horaIngresoGrabado ?? '').trim()
+      // Presente = tiene credencial
+      if (!row.credencial || String(row.credencial).trim() === '') return
+      // Se asigna al slot de su hora citada
+      const hora = String(row.horaIngresoCitado ?? '').trim()
       if (!hora) return
       const slot = matchSlot(hora)
       if (slot !== null && counts[slot] !== undefined) counts[slot]++
@@ -107,6 +112,15 @@ export default function ScheduleTable({ excelRows }) {
       <div className={styles.tableContainer}>
         <table className={styles.table}>
           <thead>
+            {/* Fila con logo — aparece en el screenshot */}
+            <tr>
+              <td colSpan={8} className={styles.logoRow}>
+                <div className={styles.logoRowInner}>
+                  <img src={ocasaLogo} alt="Ocasa" className={styles.tableLogo} />
+                  <span className={styles.tableTitle}>Control de Presentismo</span>
+                </div>
+              </td>
+            </tr>
             <tr>
               <th rowSpan={2} className={styles.th}>Horario</th>
               <th rowSpan={2} className={`${styles.th} ${styles.thAuto}`}>

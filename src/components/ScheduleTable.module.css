@@ -14,18 +14,18 @@
   border-collapse: collapse;
   width: 100%;
   background: #fff;
-  font-size: 0.83rem;
+  font-size: 0.76rem;
 }
 
 /* ── Encabezados ── */
 .th {
   background: var(--ocasa-blue-deep);
   color: #fff;
-  padding: 0.6rem 0.85rem;
+  padding: 0.4rem 0.6rem;
   text-align: center;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   border: 1px solid rgba(255,255,255,0.1);
   vertical-align: middle;
 }
@@ -49,7 +49,7 @@
 
 /* ── Celdas ── */
 .td {
-  padding: 0.45rem 0.75rem;
+  padding: 0.3rem 0.55rem;
   border-bottom: 1px solid var(--gray-200);
   border-right: 1px solid var(--gray-200);
   text-align: center;
@@ -59,7 +59,7 @@
 /* ── Etiqueta de horario ── */
 .slotLabel {
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   white-space: nowrap;
   color: var(--ocasa-blue-deep);
   background: var(--ocasa-blue-pale);
@@ -89,14 +89,14 @@
 
 /* ── Input pedidos ── */
 .numInput {
-  width: 60px;
+  width: 52px;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--gray-800);
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-sm);
-  padding: 0.25rem 0.3rem;
+  padding: 0.18rem 0.25rem;
   outline: none;
   background: #fff;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -153,7 +153,7 @@
 
 .blockValue {
   display: block;
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .blockTag {
@@ -233,3 +233,29 @@
 .legendItem.pctMid  { background: var(--yellow-light); color: var(--yellow); border-color: #FDE68A; }
 .legendItem.pctLow  { background: var(--red-light);    color: var(--red);    border-color: #FECACA; }
 .legendItemCsv      { background: var(--ocasa-blue-light); color: var(--ocasa-blue-deep); border-color: #BAE6FD; }
+
+/* ── Fila de logo para screenshot ── */
+.logoRow {
+  background: var(--ocasa-blue);
+  padding: 0.5rem 0.85rem !important;
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+.logoRowInner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tableLogo {
+  height: 48px;
+  width: auto;
+  display: block;
+}
+
+.tableTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
