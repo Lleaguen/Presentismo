@@ -315,9 +315,8 @@
   position: relative;
   background: #f0f9ff;
   border-radius: 16px;
-  width: 100%;
-  max-width: 860px;
-  /* Ocupa casi todo el alto disponible */
+  width: 98vw;
+  max-width: 1200px;
   height: calc(100vh - 1.5rem);
   display: flex;
   flex-direction: column;
@@ -399,42 +398,140 @@
   color: #fff;
 }
 
+
 .modalTableContainer {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   background: #fff;
   position: relative;
+  min-height: 0;
+  height: 100%;
 }
 
-/* Tabla en modal: achicada para entrar sin scroll */
-.tableCompact {
-  font-size: 0.72rem !important;
+.modalTableContainer table {
+  font-size: clamp(0.6rem, 1.2vw, 0.82rem);
+  width: 100%;
 }
 
-.tableCompact th {
-  padding: 0.22rem 0.45rem !important;
-  font-size: 0.65rem !important;
+.modalTableContainer th {
+  padding: clamp(0.18rem, 0.5vh, 0.38rem) clamp(0.25rem, 0.6vw, 0.6rem) !important;
+  font-size: clamp(0.55rem, 1vw, 0.72rem) !important;
   white-space: nowrap;
 }
 
-.tableCompact td {
-  padding: 0.15rem 0.4rem !important;
+.modalTableContainer td {
+  padding: clamp(0.12rem, 0.35vh, 0.28rem) clamp(0.22rem, 0.5vw, 0.5rem) !important;
   white-space: nowrap;
 }
 
-/* Input más compacto en modal */
-.tableCompact .numInput {
-  width: 40px !important;
-  font-size: 0.68rem !important;
-  padding: 0.06rem 0.15rem !important;
+.modalTableContainer .numInput {
+  width: clamp(36px, 4vw, 52px) !important;
+  font-size: clamp(0.62rem, 1vw, 0.78rem) !important;
+  padding: 0.08rem 0.15rem !important;
 }
 
-/* blockValue más pequeño en modal */
-.tableCompact .blockValue {
-  font-size: 0.75rem !important;
+.modalChartContainer {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background: #fff;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Ocultar la fila del logo interno cuando está en modal */
+.modalChartTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gray-600);
+  margin: 0;
+  flex-shrink: 0;
+}
+
 .modalTableContainer .logoRow {
   display: none;
+}
+
+/* ── Carrusel del modal ── */
+.carouselControls {
+  display: flex;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 0.2rem;
+}
+
+.carouselBtn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.carouselBtnActive {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+.carouselBtn:hover:not(.carouselBtnActive) {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.carouselTrack {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.carouselSlide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.carouselSlideActive {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+.carouselSlideHidden {
+  opacity: 0;
+  transform: translateX(30px);
+  pointer-events: none;
+}
+
+.carouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  background: #f0f9ff;
+  flex-shrink: 0;
+}
+
+.carouselDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--gray-300);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.carouselDotActive {
+  background: var(--ocasa-blue);
+  transform: scale(1.3);
 }

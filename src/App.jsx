@@ -3,6 +3,7 @@ import FileUploader from './components/FileUploader'
 import StatsBar from './components/StatsBar'
 import ScheduleTable from './components/ScheduleTable'
 import AttendanceTable from './components/AttendanceTable'
+import IngresoCurveChart from './components/IngresoCurveChart'
 import { parseExcelFile } from './utils/parseExcel'
 import { SCHEDULE_HOURS, matchSlot } from './utils/scheduleConfig'
 import ocasaLogo from './assets/Ocasa.png'
@@ -142,11 +143,22 @@ export default function App() {
             <img src={ocasaLogo} alt="Ocasa" className={styles.sectionLogo} />
           </div>
           <div className={styles.sectionBody}>
-            <ScheduleTable excelRows={rows} pedidosPorSlot={pedidosPorSlot} onPedidosChange={setPedidosPorSlot} />
+            <ScheduleTable excelRows={rows} rows={rows} pedidosPorSlot={pedidosPorSlot} onPedidosChange={setPedidosPorSlot} />
           </div>
         </div>
 
-        {/* 4 — Detalle por empleado */}
+        {/* 4 — Gráfico de curva de ingresos */}
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionIcon}>📈</div>
+            <span className={styles.sectionTitle}>Curva de ingresos por hora</span>
+          </div>
+          <div className={styles.sectionBody}>
+            <IngresoCurveChart rows={rows} pedidosPorSlot={pedidosPorSlot} />
+          </div>
+        </div>
+
+        {/* 5 — Detalle por empleado */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>👥</div>

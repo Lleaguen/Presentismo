@@ -1,0 +1,52 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wrapperFull {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.empty {
+  font-size: 0.82rem;
+  color: var(--gray-400);
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* Tooltip */
+.tooltip {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-size: 0.78rem;
+}
+
+.tooltipLabel {
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.tooltipItem {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Leyenda */
+.legend {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.legendConv { color: #00AEEF; }
+.legendPed  { color: #8B5CF6; }
+.legendPres { color: #16A34A; }
