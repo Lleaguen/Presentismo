@@ -1,4 +1,5 @@
 export const SCHEDULE_HOURS = [
+  { label: '10:00', value: '10:00', block: null },
   { label: '11:00', value: '11:00', block: null },
   { label: '12:00', value: '12:00', block: 'dia' },
   { label: '13:00', value: '13:00', block: 'dia' },
@@ -35,11 +36,9 @@ const SLOTS_MINS = SCHEDULE_HOURS.map((s) => ({
 }))
 
 /**
- * Dado un string de hora (ej: "12:44:20", "13:10:00"),
- * devuelve el `value` del slot más cercano.
- *
- * Lógica: slot cuya distancia absoluta a la hora real es mínima.
- * Si hay empate, gana el slot anterior (floor).
+ * Dado un string de hora (ej: "11:00:00", "13:30:00"),
+ * devuelve el `value` del slot si coincide exactamente (ignorando segundos).
+ * Si no hay coincidencia exacta, devuelve null.
  */
 export function matchSlot(horaStr) {
   if (!horaStr || String(horaStr).trim() === '') return null
@@ -47,16 +46,6 @@ export function matchSlot(horaStr) {
   const mins = toMinutes(horaStr)
   if (mins === null) return null
 
-  let best = null
-  let bestDist = Infinity
-
-  for (const slot of SLOTS_MINS) {
-    const dist = Math.abs(slot.mins - mins)
-    if (dist < bestDist) {
-      bestDist = dist
-      best = slot.value
-    }
-  }
-
-  return best
+  const match = SLOTS_MINS.find((slot) => slot.mins === mins)
+  return match ? match.value : null
 }

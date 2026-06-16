@@ -4,6 +4,7 @@ import StatsBar from './components/StatsBar'
 import ScheduleTable from './components/ScheduleTable'
 import AttendanceTable from './components/AttendanceTable'
 import { parseExcelFile } from './utils/parseExcel'
+import { SCHEDULE_HOURS } from './utils/scheduleConfig'
 import ocasaLogo from './assets/Ocasa.png'
 import styles from './App.module.css'
 
@@ -11,6 +12,12 @@ export default function App() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fileKey, setFileKey] = useState(0)
+  const [pedidosPorSlot, setPedidosPorSlot] = useState(() => {
+    const init = {}
+    SCHEDULE_HOURS.forEach((s) => { init[s.value] = '' })
+    return init
+  })
 
   const presentes = useMemo(
     () => rows.filter((r) => r.horaIngresoGrabado && String(r.horaIngresoGrabado).trim() !== '').length,
@@ -31,6 +38,13 @@ export default function App() {
     }
   }
 
+  function handleClear() {
+    setRows([])
+    setError('')
+    setFileKey((k) => k + 1)
+    // pedidosPorSlot se mantiene intacto
+  }
+
   return (
     <div className={styles.app}>
 
@@ -47,6 +61,11 @@ export default function App() {
         <span className={styles.headerBadge}>
           {rows.length > 0 ? `${rows.length} registros cargados` : 'Sin datos'}
         </span>
+        {rows.length > 0 && (
+          <button className={styles.clearBtn} onClick={handleClear} title="Limpiar datos y cargar otro archivo">
+            🗑 Limpiar
+          </button>
+        )}
       </header>
 
       <main className={styles.main}>
@@ -58,7 +77,7 @@ export default function App() {
             <span className={styles.sectionTitle}>Importar archivo</span>
           </div>
           <div className={styles.sectionBody}>
-            <FileUploader onFileLoaded={handleFileLoaded} />
+            <FileUploader key={fileKey} onFileLoaded={handleFileLoaded} />
             {loading && (
               <div className={styles.statusRow}>
                 <div className={styles.spinner} />
@@ -92,7 +111,7 @@ export default function App() {
             <img src={ocasaLogo} alt="Ocasa" className={styles.sectionLogo} />
           </div>
           <div className={styles.sectionBody}>
-            <ScheduleTable excelRows={rows} />
+            <ScheduleTable excelRows={rows} pedidosPorSlot={pedidosPorSlot} onPedidosChange={setPedidosPorSlot} />
           </div>
         </div>
 

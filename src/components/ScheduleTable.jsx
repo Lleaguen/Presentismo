@@ -1,20 +1,40 @@
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { SCHEDULE_HOURS, matchSlot } from '../utils/scheduleConfig'
 import InsightCarousel from './InsightCarousel'
 import ocasaLogo from '../assets/Ocasa.png'
 import styles from './ScheduleTable.module.css'
 
-export default function ScheduleTable({ excelRows }) {
-  const [pedidosPorSlot, setPedidosPorSlot] = useState(() => {
-    const init = {}
-    SCHEDULE_HOURS.forEach((s) => { init[s.value] = '' })
-    return init
-  })
-
+export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChange }) {
+  const [modalOpen, setModalOpen] = useState(false)
+  const modalTableRef = useRef(null)
+  const modalContainerRef = useRef(null)
+  const [tableScale, setTableScale] = useState(1)
   const inputRefs = useRef({})
 
+  // Calcula el scale necesario para que la tabla entre sin scroll
+  useEffect(() => {
+    if (!modalOpen) return
+    const calc = () => {
+      const container = modalContainerRef.current
+      const table = modalTableRef.current
+      if (!container || !table) return
+      const availH = container.clientHeight
+      const availW = container.clientWidth
+      const tableH = table.scrollHeight
+      const tableW = table.scrollWidth
+      const scaleH = availH / tableH
+      const scaleW = availW / tableW
+      const scale = Math.min(scaleH, scaleW, 1) // nunca ampliar, solo achicar
+      setTableScale(scale)
+    }
+    // Espera a que el DOM esté pintado
+    const id = setTimeout(calc, 50)
+    window.addEventListener('resize', calc)
+    return () => { clearTimeout(id); window.removeEventListener('resize', calc) }
+  }, [modalOpen])
+
   function handlePedidos(slotValue, value) {
-    setPedidosPorSlot((prev) => ({ ...prev, [slotValue]: value }))
+    onPedidosChange((prev) => ({ ...prev, [slotValue]: value }))
   }
 
   function handleKeyDown(e, slotValue) {
@@ -31,23 +51,27 @@ export default function ScheduleTable({ excelRows }) {
   const convocadosPorSlot = useMemo(() => {
     const counts = {}
     SCHEDULE_HOURS.forEach((s) => { counts[s.value] = 0 })
+    const unmatched = []
     excelRows.forEach((row) => {
       const hora = String(row.horaIngresoCitado ?? '').trim()
       if (!hora) return
       const slot = matchSlot(hora)
       if (slot !== null && counts[slot] !== undefined) counts[slot]++
+      else unmatched.push(hora)
     })
+    console.log('[DEBUG] convocados por slot:', counts)
+    console.log('[DEBUG] horas sin match:', [...new Set(unmatched)])
     return counts
   }, [excelRows])
 
-  // Presentes: tienen credencial, asignados al slot de su hora citada
   const presentesPorSlot = useMemo(() => {
     const counts = {}
     SCHEDULE_HOURS.forEach((s) => { counts[s.value] = 0 })
     excelRows.forEach((row) => {
-      // Presente = tiene credencial
-      if (!row.credencial || String(row.credencial).trim() === '') return
-      // Se asigna al slot de su hora citada
+      if (
+        !row.credencial || String(row.credencial).trim() === '' ||
+        !row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === ''
+      ) return
       const hora = String(row.horaIngresoCitado ?? '').trim()
       if (!hora) return
       const slot = matchSlot(hora)
@@ -87,7 +111,6 @@ export default function ScheduleTable({ excelRows }) {
 
   const diaCount   = tableRows.filter((r) => r.block === 'dia').length
   const nocheCount = tableRows.filter((r) => r.block === 'noche').length
-
   const firstDiaIdx   = tableRows.findIndex((r) => r.block === 'dia')
   const firstNocheIdx = tableRows.findIndex((r) => r.block === 'noche')
 
@@ -105,154 +128,163 @@ export default function ScheduleTable({ excelRows }) {
     return styles.pctLow
   }
 
+  // Horarios a ocultar en el modal (ninguno)
+  const MODAL_HIDDEN_SLOTS = new Set([])
+
+  // Tabla reutilizable (normal y modal)
+  function TableContent({ compact = false }) {
+    const visibleRows = compact
+      ? tableRows.filter((r) => !MODAL_HIDDEN_SLOTS.has(r.value))
+      : tableRows
+
+    const visibleDiaCount   = visibleRows.filter((r) => r.block === 'dia').length
+    const visibleNocheCount = visibleRows.filter((r) => r.block === 'noche').length
+    const firstVisibleDiaIdx   = visibleRows.findIndex((r) => r.block === 'dia')
+    const firstVisibleNocheIdx = visibleRows.findIndex((r) => r.block === 'noche')
+    return (
+      <table className={`${styles.table} ${compact ? styles.tableCompact : ''}`}>
+        <thead>
+          <tr>
+            <td colSpan={8} className={styles.logoRow}>
+              <div className={styles.logoRowInner}>
+                <img src={ocasaLogo} alt="Ocasa" className={styles.tableLogo} />
+                <span className={styles.tableTitle}>Control de Presentismo</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th rowSpan={2} className={styles.th}>Horario</th>
+            <th rowSpan={2} className={`${styles.th} ${styles.thAuto}`}>
+              Convocados<br/><span className={styles.autoTag}>CSV</span>
+            </th>
+            <th rowSpan={2} className={styles.th}>Pedidos</th>
+            <th rowSpan={2} className={`${styles.th} ${styles.thAuto}`}>
+              Presentes<br/><span className={styles.autoTag}>CSV</span>
+            </th>
+            <th rowSpan={2} className={styles.th}>Diferencia</th>
+            <th rowSpan={2} className={styles.th}>Asistencia<br/>x hora</th>
+            <th colSpan={2} className={`${styles.th} ${styles.thGroup}`}>
+              Resumen por turno
+            </th>
+          </tr>
+          <tr>
+            <th className={`${styles.th} ${styles.thSub}`}>Total Pedidos</th>
+            <th className={`${styles.th} ${styles.thSub}`}>Asistencia %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visibleRows.map((row, idx) => {
+            const isFirstDia   = idx === firstVisibleDiaIdx
+            const isFirstNoche = idx === firstVisibleNocheIdx
+            const rowClass =
+              row.block === 'dia'   ? styles.rowDia :
+              row.block === 'noche' ? styles.rowNoche :
+              idx % 2 === 0 ? styles.rowEven : styles.rowOdd
+
+            return (
+              <tr key={row.value} className={rowClass}>
+                <td className={`${styles.td} ${styles.slotLabel} ${row.block === 'dia' ? styles.slotDia : row.block === 'noche' ? styles.slotNoche : ''}`}>
+                  {row.label}
+                </td>
+                <td className={`${styles.td} ${styles.autoCell}`}>{row.conv}</td>
+                <td className={styles.td}>
+                  <input
+                    type="number"
+                    min={0}
+                    value={pedidosPorSlot[row.value] ?? ''}
+                    onChange={(e) => handlePedidos(row.value, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, row.value)}
+                    ref={(el) => { inputRefs.current[row.value] = el }}
+                    className={styles.numInput}
+                    aria-label={`Pedidos ${row.label}`}
+                  />
+                </td>
+                <td className={`${styles.td} ${styles.presentes}`}>{row.pres}</td>
+                <td className={`${styles.td} ${diffClass(row.diff)}`}>
+                  {row.ped > 0 || row.pres > 0
+                    ? (row.diff > 0 ? `+${row.diff}` : row.diff)
+                    : '—'}
+                </td>
+                <td className={`${styles.td} ${pctClass(row.asistPct)}`}>
+                  {row.asistPct !== '—' ? `${row.asistPct}%` : '—'}
+                </td>
+                {isFirstDia && (
+                  <>
+                    <td rowSpan={visibleDiaCount} className={`${styles.td} ${styles.blockCell}`}>
+                      <div className={styles.blockTag}>Diurno</div>
+                      <span className={styles.blockValue}>{totals.dia.totalPed}</span>
+                      <span className={styles.blockSub}>pedidos</span>
+                    </td>
+                    <td rowSpan={visibleDiaCount} className={`${styles.td} ${styles.blockCell} ${pctClass(totals.dia.pct)}`}>
+                      <div className={styles.blockTag}>Diurno</div>
+                      <span className={styles.blockValue}>{totals.dia.pct !== '—' ? `${totals.dia.pct}%` : '—'}</span>
+                      <span className={styles.blockSub}>asistencia</span>
+                    </td>
+                  </>
+                )}
+                {isFirstNoche && (
+                  <>
+                    <td rowSpan={visibleNocheCount} className={`${styles.td} ${styles.blockCellNoche}`}>
+                      <div className={styles.blockTag}>Nocturno</div>
+                      <span className={styles.blockValue}>{totals.noche.totalPed}</span>
+                      <span className={styles.blockSub}>pedidos</span>
+                    </td>
+                    <td rowSpan={visibleNocheCount} className={`${styles.td} ${styles.blockCellNoche} ${pctClass(totals.noche.pct)}`}>
+                      <div className={styles.blockTag}>Nocturno</div>
+                      <span className={styles.blockValue}>{totals.noche.pct !== '—' ? `${totals.noche.pct}%` : '—'}</span>
+                      <span className={styles.blockSub}>asistencia</span>
+                    </td>
+                  </>
+                )}
+                {row.block === null && (
+                  <>
+                    <td className={`${styles.td} ${styles.noBlock}`}>—</td>
+                    <td className={`${styles.td} ${styles.noBlock}`}>—</td>
+                  </>
+                )}
+              </tr>
+            )
+          })}
+        </tbody>
+        <tfoot>
+          <tr className={styles.totalRow}>
+            <td className={`${styles.td} ${styles.totalLabel}`}>TOTAL</td>
+            <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalConv}</td>
+            <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalPed}</td>
+            <td className={`${styles.td} ${styles.totalCell} ${styles.presentes}`}>{totals.totalPres}</td>
+            <td className={`${styles.td} ${styles.totalCell} ${diffClass(totals.totalDiff)}`}>
+              {totals.totalPed > 0 || totals.totalPres > 0
+                ? (totals.totalDiff > 0 ? `+${totals.totalDiff}` : totals.totalDiff)
+                : '—'}
+            </td>
+            <td className={`${styles.td} ${styles.totalCell} ${pctClass(totals.totalAsist)}`}>
+              {totals.totalAsist !== '—' ? `${totals.totalAsist}%` : '—'}
+            </td>
+            <td className={`${styles.td} ${styles.totalCell}`}>{totals.dia.totalPed + totals.noche.totalPed}</td>
+            <td className={`${styles.td} ${styles.totalCell}`}>—</td>
+          </tr>
+        </tfoot>
+      </table>
+    )
+  }
+
   return (
     <div className={styles.wrapper}>
 
+      {/* ── Botón pantalla completa ── */}
+      <div className={styles.toolbarRow}>
+        <button
+          className={styles.fullscreenBtn}
+          onClick={() => setModalOpen(true)}
+          title="Ver tabla completa"
+        >
+          ⛶ Pantalla completa
+        </button>
+      </div>
+
       {/* ── Tabla principal ── */}
       <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            {/* Fila con logo — aparece en el screenshot */}
-            <tr>
-              <td colSpan={8} className={styles.logoRow}>
-                <div className={styles.logoRowInner}>
-                  <img src={ocasaLogo} alt="Ocasa" className={styles.tableLogo} />
-                  <span className={styles.tableTitle}>Control de Presentismo</span>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th rowSpan={2} className={styles.th}>Horario</th>
-              <th rowSpan={2} className={`${styles.th} ${styles.thAuto}`}>
-                Convocados<br/><span className={styles.autoTag}>CSV</span>
-              </th>
-              <th rowSpan={2} className={styles.th}>Pedidos</th>
-              <th rowSpan={2} className={`${styles.th} ${styles.thAuto}`}>
-                Presentes<br/><span className={styles.autoTag}>CSV</span>
-              </th>
-              <th rowSpan={2} className={styles.th}>Diferencia</th>
-              <th rowSpan={2} className={styles.th}>Asistencia<br/>x hora</th>
-              {/* Una sola columna agrupadora para diurno Y nocturno */}
-              <th colSpan={2} className={`${styles.th} ${styles.thGroup}`}>
-                Resumen por turno
-              </th>
-            </tr>
-            <tr>
-              <th className={`${styles.th} ${styles.thSub}`}>Total Pedidos</th>
-              <th className={`${styles.th} ${styles.thSub}`}>Asistencia %</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {tableRows.map((row, idx) => {
-              const isFirstDia   = idx === firstDiaIdx
-              const isFirstNoche = idx === firstNocheIdx
-
-              const rowClass =
-                row.block === 'dia'   ? styles.rowDia :
-                row.block === 'noche' ? styles.rowNoche :
-                idx % 2 === 0 ? styles.rowEven : styles.rowOdd
-
-              return (
-                <tr key={row.value} className={rowClass}>
-                  <td className={`${styles.td} ${styles.slotLabel} ${row.block === 'dia' ? styles.slotDia : row.block === 'noche' ? styles.slotNoche : ''}`}>
-                    {row.label}
-                  </td>
-
-                  <td className={`${styles.td} ${styles.autoCell}`}>{row.conv}</td>
-
-                  <td className={styles.td}>
-                    <input
-                      type="number"
-                      min={0}
-                      value={pedidosPorSlot[row.value] ?? ''}
-                      onChange={(e) => handlePedidos(row.value, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, row.value)}
-                      ref={(el) => { inputRefs.current[row.value] = el }}
-                      className={styles.numInput}
-                      aria-label={`Pedidos ${row.label}`}
-                    />
-                  </td>
-
-                  <td className={`${styles.td} ${styles.presentes}`}>{row.pres}</td>
-
-                  <td className={`${styles.td} ${diffClass(row.diff)}`}>
-                    {row.ped > 0 || row.pres > 0
-                      ? (row.diff > 0 ? `+${row.diff}` : row.diff)
-                      : '—'}
-                  </td>
-
-                  <td className={`${styles.td} ${pctClass(row.asistPct)}`}>
-                    {row.asistPct !== '—' ? `${row.asistPct}%` : '—'}
-                  </td>
-
-                  {/* Diurno — rowspan sobre filas dia */}
-                  {isFirstDia && (
-                    <>
-                      <td rowSpan={diaCount} className={`${styles.td} ${styles.blockCell}`}>
-                        <div className={styles.blockTag}>Diurno</div>
-                        <span className={styles.blockValue}>{totals.dia.totalPed}</span>
-                        <span className={styles.blockSub}>pedidos</span>
-                      </td>
-                      <td rowSpan={diaCount} className={`${styles.td} ${styles.blockCell} ${pctClass(totals.dia.pct)}`}>
-                        <div className={styles.blockTag}>Diurno</div>
-                        <span className={styles.blockValue}>
-                          {totals.dia.pct !== '—' ? `${totals.dia.pct}%` : '—'}
-                        </span>
-                        <span className={styles.blockSub}>asistencia</span>
-                      </td>
-                    </>
-                  )}
-
-                  {/* Nocturno — rowspan sobre filas noche, en la MISMA columna */}
-                  {isFirstNoche && (
-                    <>
-                      <td rowSpan={nocheCount} className={`${styles.td} ${styles.blockCellNoche}`}>
-                        <div className={styles.blockTag}>Nocturno</div>
-                        <span className={styles.blockValue}>{totals.noche.totalPed}</span>
-                        <span className={styles.blockSub}>pedidos</span>
-                      </td>
-                      <td rowSpan={nocheCount} className={`${styles.td} ${styles.blockCellNoche} ${pctClass(totals.noche.pct)}`}>
-                        <div className={styles.blockTag}>Nocturno</div>
-                        <span className={styles.blockValue}>
-                          {totals.noche.pct !== '—' ? `${totals.noche.pct}%` : '—'}
-                        </span>
-                        <span className={styles.blockSub}>asistencia</span>
-                      </td>
-                    </>
-                  )}
-
-                  {/* Filas fuera de bloque */}
-                  {row.block === null && (
-                    <>
-                      <td className={`${styles.td} ${styles.noBlock}`}>—</td>
-                      <td className={`${styles.td} ${styles.noBlock}`}>—</td>
-                    </>
-                  )}
-                </tr>
-              )
-            })}
-          </tbody>
-
-          <tfoot>
-            <tr className={styles.totalRow}>
-              <td className={`${styles.td} ${styles.totalLabel}`}>TOTAL</td>
-              <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalConv}</td>
-              <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalPed}</td>
-              <td className={`${styles.td} ${styles.totalCell} ${styles.presentes}`}>{totals.totalPres}</td>
-              <td className={`${styles.td} ${styles.totalCell} ${diffClass(totals.totalDiff)}`}>
-                {totals.totalPed > 0 || totals.totalPres > 0
-                  ? (totals.totalDiff > 0 ? `+${totals.totalDiff}` : totals.totalDiff)
-                  : '—'}
-              </td>
-              <td className={`${styles.td} ${styles.totalCell} ${pctClass(totals.totalAsist)}`}>
-                {totals.totalAsist !== '—' ? `${totals.totalAsist}%` : '—'}
-              </td>
-              <td className={`${styles.td} ${styles.totalCell}`}>{totals.dia.totalPed + totals.noche.totalPed}</td>
-              <td className={`${styles.td} ${styles.totalCell}`}>—</td>
-            </tr>
-          </tfoot>
-        </table>
+        <TableContent />
       </div>
 
       {/* ── Indicadores de gestión (debajo) ── */}
@@ -265,6 +297,52 @@ export default function ScheduleTable({ excelRows }) {
         <span className={`${styles.legendItem} ${styles.pctLow}`}>&lt; 80% — Bajo</span>
         <span className={`${styles.legendItem} ${styles.legendItemCsv}`}>CSV — calculado automáticamente</span>
       </div>
+
+      {/* ── Modal pantalla completa ── */}
+      {modalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false) }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Tabla de presentismo en pantalla completa"
+        >
+          <div className={styles.modalContent}>
+            {/* Header del modal */}
+            <div className={styles.modalHeader}>
+              <img src={ocasaLogo} alt="Ocasa" className={styles.modalHeaderLogo} />
+              <div className={styles.modalHeaderDivider} />
+              <div className={styles.modalHeaderText}>
+                <div className={styles.modalHeaderTitle}>Control de Presentismo</div>
+                <div className={styles.modalHeaderSub}>
+                  {new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+              <button
+                className={styles.modalCloseBtn}
+                onClick={() => setModalOpen(false)}
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Tabla */}
+            <div className={styles.modalTableContainer} ref={modalContainerRef}>
+              <div
+                ref={modalTableRef}
+                style={{
+                  transformOrigin: 'top left',
+                  transform: `scale(${tableScale})`,
+                  width: tableScale < 1 ? `${100 / tableScale}%` : '100%',
+                }}
+              >
+                <TableContent compact />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
