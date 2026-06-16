@@ -10,7 +10,7 @@ export const SCHEDULE_HOURS = [
   { label: '16:00', value: '16:00', block: 'dia' },
   { label: '16:30', value: '16:30', block: 'dia' },
   { label: '17:00', value: '17:00', block: 'dia' },
-  { label: '18:00', value: '18:00', block: null },
+  { label: '18:00', value: '18:00', block: 'dia' },
   { label: '20:00', value: '20:00', block: 'noche' },
   { label: '22:00', value: '22:00', block: 'noche' },
   { label: '23:00', value: '23:00', block: 'noche' },

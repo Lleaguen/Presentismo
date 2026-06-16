@@ -50,3 +50,39 @@
 .legendConv { color: #00AEEF; }
 .legendPed  { color: #8B5CF6; }
 .legendPres { color: #16A34A; }
+
+/* Selector de vista */
+.vistaSelector {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.vistaBtn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vistaBtnActive {
+  background: var(--ocasa-blue);
+  border-color: var(--ocasa-blue);
+  color: #fff;
+}
+
+.vistaBtn:hover:not(.vistaBtnActive) {
+  border-color: var(--ocasa-blue);
+  color: var(--ocasa-blue);
+}
+
+.legendItem2 {
+  font-size: 0.73rem;
+  font-weight: 600;
+}
