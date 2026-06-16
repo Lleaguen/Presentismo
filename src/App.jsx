@@ -58,14 +58,16 @@ export default function App() {
             <div className={styles.appSubtitle}>Sistema de gestión de asistencia operativa</div>
           </div>
         </div>
-        <span className={styles.headerBadge}>
-          {rows.length > 0 ? `${rows.length} registros cargados` : 'Sin datos'}
-        </span>
-        {rows.length > 0 && (
-          <button className={styles.clearBtn} onClick={handleClear} title="Limpiar datos y cargar otro archivo">
-            🗑 Limpiar
-          </button>
-        )}
+        <div className={styles.headerRight}>
+          <span className={styles.headerBadge}>
+            {rows.length > 0 ? `${rows.length} registros cargados` : 'Sin datos'}
+          </span>
+          {rows.length > 0 && (
+            <button className={styles.clearBtn} onClick={handleClear} title="Limpiar datos y cargar otro archivo">
+              🗑 Limpiar
+            </button>
+          )}
+        </div>
       </header>
 
       <main className={styles.main}>

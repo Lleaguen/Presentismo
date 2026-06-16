@@ -59,6 +59,15 @@
   border: 1px solid rgba(255,255,255,0.35);
   border-radius: 20px;
   padding: 0.25rem 0.75rem;
+  white-space: nowrap;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 220px;
+  justify-content: flex-end;
 }
 
 .clearBtn {
@@ -71,7 +80,7 @@
   padding: 0.25rem 0.85rem;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
-  margin-left: 0.5rem;
+  white-space: nowrap;
 }
 
 .clearBtn:hover {
