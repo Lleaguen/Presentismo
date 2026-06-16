@@ -35,6 +35,45 @@ const SLOTS_MINS = SCHEDULE_HOURS.map((s) => ({
   mins: toMinutes(s.value),
 }))
 
+// Slots que corresponden al día siguiente (pasada la medianoche)
+const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
+
+/**
+ * Indica si un slot pertenece al día siguiente respecto a la fecha citada.
+ */
+export function isNextDaySlot(slotValue) {
+  return NEXT_DAY_SLOTS.has(slotValue)
+}
+
+/**
+ * Parsea "DD/MM/YYYY" y devuelve un objeto Date UTC.
+ */
+export function parseDateDMY(str) {
+  if (!str) return null
+  const parts = String(str).trim().split('/')
+  if (parts.length !== 3) return null
+  const [d, m, y] = parts.map(Number)
+  if (isNaN(d) || isNaN(m) || isNaN(y)) return null
+  return new Date(Date.UTC(y, m - 1, d))
+}
+
+/**
+ * Dado fechaIngresoCitado y fechaIngresoGrabado (strings "DD/MM/YYYY")
+ * y el slot de hora citada, valida que la fecha grabada sea la correcta:
+ * - Slots normales: misma fecha
+ * - Slots pasada medianoche (0:00, 6:00, 7:00): día siguiente
+ */
+export function fechaGrabadaValida(fechaCitada, fechaGrabada, slotValue) {
+  if (!fechaCitada || !fechaGrabada) return false
+  const citada  = parseDateDMY(fechaCitada)
+  const grabada = parseDateDMY(fechaGrabada)
+  if (!citada || !grabada) return false
+  const diffDias = Math.round((grabada - citada) / (1000 * 60 * 60 * 24))
+  if (isNextDaySlot(slotValue)) {
+    return diffDias === 1
+  }
+  return diffDias === 0
+}
 /**
  * Dado un string de hora (ej: "11:00:00", "13:30:00"),
  * devuelve el `value` del slot si coincide exactamente (ignorando segundos).

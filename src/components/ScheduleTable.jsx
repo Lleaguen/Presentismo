@@ -4,6 +4,29 @@ import InsightCarousel from './InsightCarousel'
 import ocasaLogo from '../assets/Ocasa.png'
 import styles from './ScheduleTable.module.css'
 
+// Parsea "DD/MM/YYYY" o "YYYY-MM-DD" → Date UTC (solo fecha)
+function parseFecha(str) {
+  const s = String(str ?? '').trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split('-').map(Number)
+    return new Date(Date.UTC(y, m - 1, d))
+  }
+  const p = s.split('/')
+  if (p.length === 3) {
+    const [d, m, y] = p.map(Number)
+    return new Date(Date.UTC(y, m - 1, d))
+  }
+  return null
+}
+
+function esHoy(fechaStr, hoy) {
+  const f = parseFecha(fechaStr)
+  if (!f) return false
+  return f.getUTCFullYear() === hoy.getUTCFullYear() &&
+         f.getUTCMonth()    === hoy.getUTCMonth() &&
+         f.getUTCDate()     === hoy.getUTCDate()
+}
+
 export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChange }) {
   const [modalOpen, setModalOpen] = useState(false)
   const modalTableRef = useRef(null)
@@ -67,11 +90,33 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
   const presentesPorSlot = useMemo(() => {
     const counts = {}
     SCHEDULE_HOURS.forEach((s) => { counts[s.value] = 0 })
+
+    const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
+    const hoy = new Date()
+    const hoyUTC = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()))
+
     excelRows.forEach((row) => {
-      if (
-        !row.credencial || String(row.credencial).trim() === '' ||
-        !row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === ''
-      ) return
+      if (!row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === '') return
+      if (String(row.gerencia ?? '').trim().toUpperCase() !== 'OPSEMLI') return
+      // La fecha citada debe ser hoy
+      if (!esHoy(row.fechaIngresoCitado, hoyUTC)) return
+      const hora = String(row.horaIngresoCitado ?? '').trim()
+      if (!hora) return
+      const slot = matchSlot(hora)
+      if (slot === null || counts[slot] === undefined) return
+      // Slots pasada medianoche citados para hoy aún no trabajaron
+      if (NEXT_DAY_SLOTS.has(slot)) return
+      counts[slot]++
+    })
+    return counts
+  }, [excelRows])
+
+  const nuevosPorSlot = useMemo(() => {
+    const counts = {}
+    SCHEDULE_HOURS.forEach((s) => { counts[s.value] = 0 })
+    excelRows.forEach((row) => {
+      if (String(row.sector ?? '').trim().toUpperCase() !== 'NUEVO') return
+      if (!row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === '') return
       const hora = String(row.horaIngresoCitado ?? '').trim()
       if (!hora) return
       const slot = matchSlot(hora)
@@ -82,14 +127,15 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
 
   const tableRows = useMemo(() => {
     return SCHEDULE_HOURS.map((slot) => {
-      const conv = convocadosPorSlot[slot.value] ?? 0
-      const ped  = parseInt(pedidosPorSlot[slot.value] || '0', 10) || 0
-      const pres = presentesPorSlot[slot.value] ?? 0
-      const diff = pres - ped
+      const conv  = convocadosPorSlot[slot.value] ?? 0
+      const ped   = parseInt(pedidosPorSlot[slot.value] || '0', 10) || 0
+      const pres  = presentesPorSlot[slot.value] ?? 0
+      const nuevo = nuevosPorSlot[slot.value] ?? 0
+      const diff  = pres - ped
       const asistPct = ped > 0 ? ((pres / ped) * 100).toFixed(1) : '—'
-      return { ...slot, conv, ped, pres, diff, asistPct }
+      return { ...slot, conv, ped, pres, nuevo, diff, asistPct }
     })
-  }, [convocadosPorSlot, pedidosPorSlot, presentesPorSlot])
+  }, [convocadosPorSlot, pedidosPorSlot, presentesPorSlot, nuevosPorSlot])
 
   const totals = useMemo(() => {
     const calcBlock = (block) => {
@@ -101,12 +147,13 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
     }
     const dia   = calcBlock('dia')
     const noche = calcBlock('noche')
-    const totalConv  = tableRows.reduce((s, r) => s + r.conv, 0)
-    const totalPed   = tableRows.reduce((s, r) => s + r.ped, 0)
-    const totalPres  = tableRows.reduce((s, r) => s + r.pres, 0)
-    const totalDiff  = totalPres - totalPed
-    const totalAsist = totalPed > 0 ? ((totalPres / totalPed) * 100).toFixed(1) : '—'
-    return { dia, noche, totalConv, totalPed, totalPres, totalDiff, totalAsist }
+    const totalConv   = tableRows.reduce((s, r) => s + r.conv, 0)
+    const totalPed    = tableRows.reduce((s, r) => s + r.ped, 0)
+    const totalPres   = tableRows.reduce((s, r) => s + r.pres, 0)
+    const totalNuevos = tableRows.reduce((s, r) => s + r.nuevo, 0)
+    const totalDiff   = totalPres - totalPed
+    const totalAsist  = totalPed > 0 ? ((totalPres / totalPed) * 100).toFixed(1) : '—'
+    return { dia, noche, totalConv, totalPed, totalPres, totalNuevos, totalDiff, totalAsist }
   }, [tableRows])
 
   const diaCount   = tableRows.filter((r) => r.block === 'dia').length
@@ -145,7 +192,7 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
       <table className={`${styles.table} ${compact ? styles.tableCompact : ''}`}>
         <thead>
           <tr>
-            <td colSpan={8} className={styles.logoRow}>
+            <td colSpan={9} className={styles.logoRow}>
               <div className={styles.logoRowInner}>
                 <img src={ocasaLogo} alt="Ocasa" className={styles.tableLogo} />
                 <span className={styles.tableTitle}>Control de Presentismo</span>
@@ -160,6 +207,9 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
             <th rowSpan={2} className={styles.th}>Pedidos</th>
             <th rowSpan={2} className={`${styles.th} ${styles.thAuto}`}>
               Presentes<br/><span className={styles.autoTag}>CSV</span>
+            </th>
+            <th rowSpan={2} className={`${styles.th} ${styles.thNuevos}`}>
+              Nuevos<br/><span className={styles.autoTag}>CSV</span>
             </th>
             <th rowSpan={2} className={styles.th}>Diferencia</th>
             <th rowSpan={2} className={styles.th}>Asistencia<br/>x hora</th>
@@ -200,6 +250,7 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
                   />
                 </td>
                 <td className={`${styles.td} ${styles.presentes}`}>{row.pres}</td>
+                <td className={`${styles.td} ${styles.nuevosCell}`}>{row.nuevo > 0 ? row.nuevo : '—'}</td>
                 <td className={`${styles.td} ${diffClass(row.diff)}`}>
                   {row.ped > 0 || row.pres > 0
                     ? (row.diff > 0 ? `+${row.diff}` : row.diff)
@@ -252,6 +303,7 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
             <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalConv}</td>
             <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalPed}</td>
             <td className={`${styles.td} ${styles.totalCell} ${styles.presentes}`}>{totals.totalPres}</td>
+            <td className={`${styles.td} ${styles.totalCell} ${styles.nuevosCell}`}>{totals.totalNuevos}</td>
             <td className={`${styles.td} ${styles.totalCell} ${diffClass(totals.totalDiff)}`}>
               {totals.totalPed > 0 || totals.totalPres > 0
                 ? (totals.totalDiff > 0 ? `+${totals.totalDiff}` : totals.totalDiff)

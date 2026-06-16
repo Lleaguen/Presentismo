@@ -31,6 +31,7 @@
 }
 
 .thAuto    { background: #007A9A; }
+.thNuevos  { background: #C2410C; }
 .thGroup   { background: var(--ocasa-blue); }
 .thGroupNoche { background: #1D5C8A; }
 .thSub     { background: #0095CC; font-size: 0.73rem; }
@@ -122,6 +123,12 @@
   font-weight: 700;
   color: var(--green);
   background: var(--green-light) !important;
+}
+
+.nuevosCell {
+  font-weight: 700;
+  color: #EA580C;
+  background: #FFF7ED !important;
 }
 
 /* ── Diferencia ── */

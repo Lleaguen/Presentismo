@@ -1,5 +1,33 @@
 import { useState } from 'react'
 import styles from './InsightCarousel.module.css'
+import { matchSlot } from '../utils/scheduleConfig'
+
+const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
+
+function parseFecha(str) {
+  const s = String(str ?? '').trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const [y,m,d] = s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)) }
+  const p = s.split('/'); if (p.length === 3) { const [d,m,y] = p.map(Number); return new Date(Date.UTC(y,m-1,d)) }
+  return null
+}
+
+function esHoy(str) {
+  const hoy = new Date()
+  const f = parseFecha(str)
+  if (!f) return false
+  return f.getUTCFullYear() === hoy.getFullYear() &&
+         f.getUTCMonth()    === hoy.getMonth() &&
+         f.getUTCDate()     === hoy.getDate()
+}
+
+function esPresente(row) {
+  if (!row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === '') return false
+  if (String(row.gerencia ?? '').trim().toUpperCase() !== 'OPSEMLI') return false
+  if (!esHoy(row.fechaIngresoCitado)) return false
+  const slot = matchSlot(String(row.horaIngresoCitado ?? '').trim())
+  if (slot && NEXT_DAY_SLOTS.has(slot)) return false
+  return true
+}
 
 const TABS = [
   { id: 'ausentismo', label: '📉 Ausentismo x hora' },
@@ -26,12 +54,13 @@ export default function InsightCarousel({ tableRows, excelRows }) {
   tableRows.forEach((r) => { puntBySlot[r.value] = { puntuales: 0, total: 0 } })
 
   excelRows.forEach((row) => {
-    if (!row.horaIngresoGrabado || !row.horaIngresoCitado) return
+    if (!esPresente(row)) return
+    if (!row.horaIngresoCitado) return
+    const slot = exactSlot(row.horaIngresoCitado, tableRows)
+    if (!slot || !puntBySlot[slot]) return
     const citMins  = toMins(row.horaIngresoCitado)
     const grabMins = toMins(row.horaIngresoGrabado)
     if (citMins === null || grabMins === null) return
-    const slot = closestSlot(row.horaIngresoCitado, tableRows)
-    if (!slot || !puntBySlot[slot]) return
     puntBySlot[slot].total++
     if (grabMins - citMins <= 30) puntBySlot[slot].puntuales++
   })
@@ -52,11 +81,13 @@ export default function InsightCarousel({ tableRows, excelRows }) {
   /* ── 3. Ausentismo por agencia (columna GrupoZona) ── */
   const agMap = {}
   excelRows.forEach((row) => {
+    if (String(row.gerencia ?? '').trim().toUpperCase() !== 'OPSEMLI') return
+    if (!esHoy(row.fechaIngresoCitado)) return
     const ag = String(row.grupozona || '').trim()
     if (!ag) return
     if (!agMap[ag]) agMap[ag] = { ausentes: 0, total: 0 }
     agMap[ag].total++
-    if (!row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === '') agMap[ag].ausentes++
+    if (!esPresente(row)) agMap[ag].ausentes++
   })
 
   const agencias = Object.entries(agMap)
@@ -204,17 +235,11 @@ function toMins(str) {
   return parts[0] * 60 + (parts[1] || 0)
 }
 
-function closestSlot(hora, tableRows) {
+function exactSlot(hora, tableRows) {
   const mins = toMins(hora)
   if (mins === null) return null
-  let best = null, bestDist = Infinity
-  tableRows.forEach((r) => {
-    const sm = toMins(r.value)
-    if (sm === null) return
-    const d = Math.abs(sm - mins)
-    if (d < bestDist) { bestDist = d; best = r.value }
-  })
-  return best
+  const match = tableRows.find((r) => toMins(r.value) === mins)
+  return match ? match.value : null
 }
 
 function ausentColor(pct) {

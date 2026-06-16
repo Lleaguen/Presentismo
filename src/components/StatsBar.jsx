@@ -4,7 +4,7 @@ import styles from './StatsBar.module.css'
  * Tarjetas de resumen del día.
  * presentes y total vienen del CSV.
  */
-export default function StatsBar({ presentes, total }) {
+export default function StatsBar({ presentes, total, nuevos = 0 }) {
   const ausentes = total - presentes
   const pct = total > 0 ? Math.round((presentes / total) * 100) : 0
 
@@ -63,6 +63,15 @@ export default function StatsBar({ presentes, total }) {
             style={{ width: `${pct}%` }}
           />
         </div>
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <span className={styles.cardLabel}>Nuevos</span>
+          <span className={`${styles.cardDot} ${styles.cardDotOrange}`} />
+        </div>
+        <span className={`${styles.value} ${styles.valueOrange}`}>{nuevos}</span>
+        <span className={styles.cardHint}>Sector Nuevo</span>
       </div>
 
     </div>

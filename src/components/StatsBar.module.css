@@ -38,6 +38,7 @@
 .cardDotBlue   { background: var(--ocasa-blue); }
 .cardDotGreen  { background: var(--green); }
 .cardDotRed    { background: var(--red); }
+.cardDotOrange { background: #F97316; }
 
 .value {
   font-size: 2rem;
@@ -46,9 +47,10 @@
   line-height: 1;
 }
 
-.valueBlue  { color: var(--ocasa-blue-dark); }
-.valueGreen { color: var(--green); }
-.valueRed   { color: var(--red); }
+.valueBlue   { color: var(--ocasa-blue-dark); }
+.valueGreen  { color: var(--green); }
+.valueRed    { color: var(--red); }
+.valueOrange { color: #EA580C; }
 
 .cardHint {
   font-size: 0.72rem;

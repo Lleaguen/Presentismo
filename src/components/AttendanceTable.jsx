@@ -29,10 +29,7 @@ export default function AttendanceTable({ data }) {
   const [presenciaFilter, setPresenciaFilter] = useState('todos') // 'todos' | 'presentes' | 'ausentes'
 
   function isPresente(row) {
-    return (
-      row.credencial && String(row.credencial).trim() !== '' &&
-      row.horaIngresoGrabado && String(row.horaIngresoGrabado).trim() !== ''
-    )
+    return row.horaIngresoGrabado && String(row.horaIngresoGrabado).trim() !== ''
   }
 
   const filtered = useMemo(() => {
