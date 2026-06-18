@@ -141,9 +141,21 @@ export default function IngresoCurveChart({ rows, pedidosPorSlot, fullHeight = f
     { key: 'presentes', name: 'Presentes', color: '#16A34A', width: 2.5 },
   ]
 
+  const seriesAusPres = [
+    { key: 'presentes', name: 'Presentes', color: '#16A34A', width: 2.5 },
+    { key: 'ausentes',  name: 'Ausentes',  color: '#DC2626', width: 2 },
+  ]
+
+  // Calcular ausentes = convocados - presentes
+  const dataConAusentes = data.map((d) => ({
+    ...d,
+    ausentes: Math.max(0, d.convocados - d.presentes),
+  }))
+
   const vistas = [
-    { label: 'Resumen', series: seriesAll },
-    { label: 'Presentes', series: seriesPres },
+    { label: 'Resumen',          series: seriesAll,     data: dataConAusentes },
+    { label: 'Presentes',        series: seriesPres,    data: dataConAusentes },
+    { label: 'Ausentes vs Pres', series: seriesAusPres, data: dataConAusentes },
   ]
 
   return (
@@ -163,7 +175,7 @@ export default function IngresoCurveChart({ rows, pedidosPorSlot, fullHeight = f
       </div>
 
       {/* Gráfico */}
-      <ChartView data={data} series={vistas[vista].series} fullHeight={fullHeight} />
+      <ChartView data={vistas[vista].data} series={vistas[vista].series} fullHeight={fullHeight} />
 
       {/* Leyenda dinámica */}
       <div className={styles.legend}>

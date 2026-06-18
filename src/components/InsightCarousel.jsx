@@ -38,6 +38,7 @@ const TABS = [
 
 export default function InsightCarousel({ tableRows, excelRows }) {
   const [active, setActive] = useState('ausentismo')
+  const [agenciaSeleccionada, setAgenciaSeleccionada] = useState(null)
 
   /* ── 1. Ausentismo por hora ── */
   const ausentismo = tableRows
@@ -85,9 +86,16 @@ export default function InsightCarousel({ tableRows, excelRows }) {
     if (!esHoy(row.fechaIngresoCitado)) return
     const ag = String(row.grupozona || '').trim()
     if (!ag) return
-    if (!agMap[ag]) agMap[ag] = { ausentes: 0, total: 0 }
+    if (!agMap[ag]) agMap[ag] = { ausentes: 0, total: 0, porSlot: {} }
     agMap[ag].total++
-    if (!esPresente(row)) agMap[ag].ausentes++
+    const slot = matchSlot(String(row.horaIngresoCitado ?? '').trim())
+    const slotLabel = slot ?? 'Sin hora'
+    if (!agMap[ag].porSlot[slotLabel]) agMap[ag].porSlot[slotLabel] = { ausentes: 0, total: 0, label: row.horaIngresoCitado ? String(row.horaIngresoCitado).slice(0,5) : '?' }
+    agMap[ag].porSlot[slotLabel].total++
+    if (!esPresente(row)) {
+      agMap[ag].ausentes++
+      agMap[ag].porSlot[slotLabel].ausentes++
+    }
   })
 
   const agencias = Object.entries(agMap)
@@ -95,10 +103,25 @@ export default function InsightCarousel({ tableRows, excelRows }) {
       ag,
       ausentes: d.ausentes,
       total: d.total,
+      porSlot: d.porSlot,
       pct: d.total > 0 ? ((d.ausentes / d.total) * 100).toFixed(1) : '0',
     }))
     .filter((a) => a.total > 0)
     .sort((a, b) => parseFloat(b.pct) - parseFloat(a.pct))
+
+  // Desglose de la agencia seleccionada, ordenado por slot
+  const desglose = agenciaSeleccionada
+    ? Object.entries(agenciaSeleccionada.porSlot)
+        .map(([slot, d]) => ({
+          slot,
+          label: d.label,
+          ausentes: d.ausentes,
+          total: d.total,
+          pct: d.total > 0 ? ((d.ausentes / d.total) * 100).toFixed(1) : '0',
+        }))
+        .filter((d) => d.total > 0)
+        .sort((a, b) => a.slot.localeCompare(b.slot))
+    : []
 
   /* ── 4. Desvío acumulado ── */
   let acum = 0
@@ -159,25 +182,76 @@ export default function InsightCarousel({ tableRows, excelRows }) {
 
       case 'agencias':
         if (!agencias.length) return <p className={styles.empty}>Sin datos suficientes</p>
+
+        // Vista desglose de agencia seleccionada
+        if (agenciaSeleccionada) {
+          return (
+            <div>
+              <div className={styles.desgloseHeader}>
+                <button className={styles.backBtn} onClick={() => setAgenciaSeleccionada(null)}>
+                  ← Volver
+                </button>
+                <span className={styles.desgloseTitle}>
+                  {agenciaSeleccionada.ag} — ausentismo por hora
+                </span>
+                <span className={styles.desgloseSub}>
+                  {agenciaSeleccionada.ausentes}/{agenciaSeleccionada.total} ausentes · {agenciaSeleccionada.pct}% total
+                </span>
+              </div>
+              <div className={styles.grid}>
+                {desglose.map((d) => {
+                  const p = parseFloat(d.pct)
+                  return (
+                    <div key={d.slot} className={styles.gridItem}>
+                      <span className={styles.itemLabel}>{d.label}hs</span>
+                      <div className={styles.itemBarWrap}>
+                        <div className={styles.itemBar} style={{ width: `${Math.min(p, 100)}%`, background: ausentColor(p) }} />
+                      </div>
+                      <div className={styles.itemFooter}>
+                        <span className={`${styles.itemVal} ${ausentClass(p, styles)}`}>{d.pct}%</span>
+                        <span className={styles.itemSub}>{d.ausentes}/{d.total}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        }
+
+        // Vista lista de agencias
         return (
-          <div className={styles.grid}>
-            {agencias.map((a) => {
-              const p = parseFloat(a.pct)
-              return (
-                <div key={a.ag} className={styles.gridItem}>
-                  <span className={styles.itemLabel} title={a.ag}>
-                    {a.ag.length > 16 ? a.ag.slice(0, 16) + '…' : a.ag}
-                  </span>
-                  <div className={styles.itemBarWrap}>
-                    <div className={styles.itemBar} style={{ width: `${Math.min(p, 100)}%`, background: ausentColor(p) }} />
+          <div>
+            <p className={styles.agenciasDesc}>
+              Ausentismo por agencia (GrupoZona) · OPSEMLI · hoy · hacé click para ver el desglose por hora
+            </p>
+            <div className={styles.grid}>
+              {agencias.map((a) => {
+                const p = parseFloat(a.pct)
+                return (
+                  <div
+                    key={a.ag}
+                    className={`${styles.gridItem} ${styles.gridItemClickable}`}
+                    onClick={() => setAgenciaSeleccionada(a)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && setAgenciaSeleccionada(a)}
+                    title="Ver desglose por hora"
+                  >
+                    <span className={styles.itemLabel} title={a.ag}>
+                      {a.ag.length > 18 ? a.ag.slice(0, 18) + '…' : a.ag}
+                    </span>
+                    <div className={styles.itemBarWrap}>
+                      <div className={styles.itemBar} style={{ width: `${Math.min(p, 100)}%`, background: ausentColor(p) }} />
+                    </div>
+                    <div className={styles.itemFooter}>
+                      <span className={`${styles.itemVal} ${ausentClass(p, styles)}`}>{a.pct}%</span>
+                      <span className={styles.itemSub}>{a.ausentes}/{a.total} aus. ›</span>
+                    </div>
                   </div>
-                  <div className={styles.itemFooter}>
-                    <span className={`${styles.itemVal} ${ausentClass(p, styles)}`}>{a.pct}%</span>
-                    <span className={styles.itemSub}>{a.ausentes}/{a.total}</span>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )
 
@@ -213,7 +287,7 @@ export default function InsightCarousel({ tableRows, excelRows }) {
             <button
               key={t.id}
               className={`${styles.tab} ${active === t.id ? styles.tabActive : ''}`}
-              onClick={() => setActive(t.id)}
+              onClick={() => { setActive(t.id); setAgenciaSeleccionada(null) }}
             >
               {t.label}
             </button>

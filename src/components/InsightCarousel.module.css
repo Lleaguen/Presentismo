@@ -159,3 +159,59 @@
 .valPos { color: var(--green); }
 .valMid { color: var(--yellow); }
 .valNeg { color: var(--red); }
+
+/* ── Agencias ── */
+.agenciasDesc {
+  font-size: 0.7rem;
+  color: var(--gray-400);
+  font-style: italic;
+  margin-bottom: 0.6rem;
+}
+
+.gridItemClickable {
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.gridItemClickable:hover {
+  border-color: var(--ocasa-blue);
+  box-shadow: 0 2px 8px rgba(0,174,239,0.15);
+}
+
+/* ── Desglose por hora ── */
+.desgloseHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ocasa-blue-dark);
+  background: #fff;
+  border: 1.5px solid #BAE6FD;
+  border-radius: 20px;
+  padding: 0.2rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.backBtn:hover {
+  background: var(--ocasa-blue-pale);
+}
+
+.desgloseTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ocasa-blue-deep);
+}
+
+.desgloseSub {
+  font-size: 0.7rem;
+  color: var(--gray-400);
+  margin-left: auto;
+}
