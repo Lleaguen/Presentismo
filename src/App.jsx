@@ -19,6 +19,31 @@ export default function App() {
     SCHEDULE_HOURS.forEach((s) => { init[s.value] = '' })
     return init
   })
+  const [totalDiff, setTotalDiff] = useState(null)
+
+  // Filtro de rango horario para la tabla
+  const [horaDesde, setHoraDesde] = useState('')
+  const [horaHasta, setHoraHasta] = useState('')
+
+  const toMins = (str) => {
+    if (!str) return null
+    const parts = String(str).trim().split(':').map(Number)
+    if (parts.length < 2 || isNaN(parts[0])) return null
+    return parts[0] * 60 + (parts[1] || 0)
+  }
+
+  const rowsFiltrados = useMemo(() => {
+    if (!horaDesde && !horaHasta) return rows
+    const desde = toMins(horaDesde)
+    const hasta  = toMins(horaHasta)
+    return rows.filter((r) => {
+      const m = toMins(String(r.horaIngresoCitado ?? '').trim())
+      if (m === null) return false
+      if (desde !== null && m < desde) return false
+      if (hasta  !== null && m > hasta)  return false
+      return true
+    })
+  }, [rows, horaDesde, horaHasta])
 
   const presentes = useMemo(() => {
     const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
@@ -140,10 +165,31 @@ export default function App() {
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>🕐</div>
             <span className={styles.sectionTitle}>Presentismo por franja horaria</span>
+
+            {/* Rango horario */}
+            <div className={styles.rangeFilter}>
+              <span className={styles.rangeLabel}>Rango</span>
+              <input type="time" value={horaDesde} onChange={(e) => setHoraDesde(e.target.value)} className={styles.rangeInput} />
+              <span className={styles.rangeSep}>—</span>
+              <input type="time" value={horaHasta} onChange={(e) => setHoraHasta(e.target.value)} className={styles.rangeInput} />
+              {(horaDesde || horaHasta) && (
+                <button className={styles.rangeClearBtn} onClick={() => { setHoraDesde(''); setHoraHasta('') }} title="Quitar">✕</button>
+              )}
+            </div>
+
+            {/* Diferencia actual */}
+            {totalDiff !== null && (
+              <div className={`${styles.diffBanner} ${totalDiff >= 0 ? styles.diffBannerPos : styles.diffBannerNeg}`}>
+                <span className={styles.diffBannerLabel}>Diferencia</span>
+                <span className={styles.diffBannerVal}>{totalDiff > 0 ? `+${totalDiff}` : totalDiff}</span>
+              </div>
+            )}
+
             <img src={ocasaLogo} alt="Ocasa" className={styles.sectionLogo} />
           </div>
+
           <div className={styles.sectionBody}>
-            <ScheduleTable excelRows={rows} rows={rows} pedidosPorSlot={pedidosPorSlot} onPedidosChange={setPedidosPorSlot} />
+            <ScheduleTable excelRows={rowsFiltrados} rows={rowsFiltrados} pedidosPorSlot={pedidosPorSlot} onPedidosChange={setPedidosPorSlot} onTotalsChange={setTotalDiff} />
           </div>
         </div>
 

@@ -145,6 +145,66 @@
   display: block;
 }
 
+/* ── Rango horario + diferencia en el header de sección ── */
+.rangeFilter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.rangeLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.rangeSep {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+}
+
+.rangeInput {
+  font-size: 0.75rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 6px;
+  padding: 0.2rem 0.35rem;
+  color: var(--gray-800);
+  background: #fff;
+  outline: none;
+  width: 105px;
+  transition: border-color 0.15s;
+}
+.rangeInput:focus { border-color: var(--ocasa-blue); }
+
+.rangeClearBtn {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--gray-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s;
+}
+.rangeClearBtn:hover { color: var(--red); }
+
+/* ── Banner diferencia ── */
+.diffBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.2rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid;
+  gap: 0.02rem;
+}
+.diffBannerPos { background: var(--green-light); border-color: #BBF7D0; color: var(--green); }
+.diffBannerNeg { background: var(--red-light); border-color: #FECACA; color: var(--red); }
+.diffBannerLabel { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.65; }
+.diffBannerVal { font-size: 1rem; font-weight: 800; line-height: 1; }
+
 /* ── Estado de carga y error ── */
 .statusRow {
   display: flex;

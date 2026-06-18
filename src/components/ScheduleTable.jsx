@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { SCHEDULE_HOURS, matchSlot } from '../utils/scheduleConfig'
 import InsightCarousel from './InsightCarousel'
 import IngresoCurveChart from './IngresoCurveChart'
@@ -58,6 +58,21 @@ function ScheduleTableContent({
   const firstVisibleDiaIdx   = visibleRows.findIndex((r) => r.block === 'dia')
   const firstVisibleNocheIdx = visibleRows.findIndex((r) => r.block === 'noche')
 
+  // Hora actual en minutos — solo mostrar diferencia en slots ya pasados
+  const ahora = new Date()
+  const ahoraMins = ahora.getHours() * 60 + ahora.getMinutes()
+
+  function toMinsSlot(val) {
+    const parts = String(val).split(':').map(Number)
+    if (parts.length < 2 || isNaN(parts[0])) return null
+    return parts[0] * 60 + parts[1]
+  }
+
+  function mostrarDiff(row) {
+    const m = toMinsSlot(row.value)
+    return m !== null && m <= ahoraMins
+  }
+
   return (
     <table className={`${styles.table} ${compact ? styles.tableCompact : ''}`}>
       <thead>
@@ -101,6 +116,8 @@ function ScheduleTableContent({
             row.block === 'noche' ? styles.rowNoche :
             idx % 2 === 0 ? styles.rowEven : styles.rowOdd
 
+          const showDiff = mostrarDiff(row)
+
           return (
             <tr key={row.value} className={rowClass}>
               <td className={`${styles.td} ${styles.slotLabel} ${row.block === 'dia' ? styles.slotDia : row.block === 'noche' ? styles.slotNoche : ''}`}>
@@ -121,13 +138,13 @@ function ScheduleTableContent({
               </td>
               <td className={`${styles.td} ${styles.presentes}`}>{row.pres}</td>
               <td className={`${styles.td} ${styles.nuevosCell}`}>{row.nuevo > 0 ? row.nuevo : '—'}</td>
-              <td className={`${styles.td} ${diffClass(row.diff, styles)}`}>
-                {row.ped > 0 || row.pres > 0
+              <td className={`${styles.td} ${showDiff ? diffClass(row.diff, styles) : ''}`}>
+                {showDiff
                   ? (row.diff > 0 ? `+${row.diff}` : row.diff)
                   : '—'}
               </td>
-              <td className={`${styles.td} ${pctClass(row.asistPct, styles)}`}>
-                {row.asistPct !== '—' ? `${row.asistPct}%` : '—'}
+              <td className={`${styles.td} ${showDiff ? pctClass(row.asistPct, styles) : ''}`}>
+                {showDiff && row.asistPct !== '—' ? `${row.asistPct}%` : '—'}
               </td>
               {isFirstDia && (
                 <>
@@ -191,7 +208,7 @@ function ScheduleTableContent({
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
-export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChange, rows }) {
+export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChange, rows, onTotalsChange }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [slide, setSlide] = useState(0) // 0 = tabla, 1 = gráfico
   const inputRefs = useRef({})
@@ -261,6 +278,10 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
       const slot = matchSlot(hora)
       if (slot !== null && counts[slot] !== undefined) counts[slot]++
     })
+    // DEBUG — mostrá los sectores únicos para verificar el valor exacto
+    const sectores = [...new Set(excelRows.map((r) => String(r.sector ?? '').trim()))]
+    console.log('[DEBUG nuevos] sectores únicos:', sectores)
+    console.log('[DEBUG nuevos] counts:', counts)
     return counts
   }, [excelRows])
 
@@ -277,6 +298,10 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
   }, [convocadosPorSlot, pedidosPorSlot, presentesPorSlot, nuevosPorSlot])
 
   const totals = useMemo(() => {
+    const ahora = new Date()
+    const ahoraMins = ahora.getHours() * 60 + ahora.getMinutes()
+    const toM = (val) => { const p = String(val).split(':').map(Number); return p.length >= 2 ? p[0]*60+p[1] : null }
+
     const calcBlock = (block) => {
       const r = tableRows.filter((x) => x.block === block)
       const totalPed  = r.reduce((s, x) => s + x.ped, 0)
@@ -290,12 +315,23 @@ export default function ScheduleTable({ excelRows, pedidosPorSlot, onPedidosChan
     const totalPed    = tableRows.reduce((s, r) => s + r.ped, 0)
     const totalPres   = tableRows.reduce((s, r) => s + r.pres, 0)
     const totalNuevos = tableRows.reduce((s, r) => s + r.nuevo, 0)
-    const totalDiff   = totalPres - totalPed
-    const totalAsist  = totalPed > 0 ? ((totalPres / totalPed) * 100).toFixed(1) : '—'
+
+    // Diferencia y asistencia solo sobre slots ya pasados
+    const slotsPasados = tableRows.filter((r) => { const m = toM(r.value); return m !== null && m <= ahoraMins })
+    const pedPasados  = slotsPasados.reduce((s, r) => s + r.ped, 0)
+    const presPasados = slotsPasados.reduce((s, r) => s + r.pres, 0)
+    const totalDiff   = presPasados - pedPasados
+    const totalAsist  = pedPasados > 0 ? ((presPasados / pedPasados) * 100).toFixed(1) : '—'
+
     return { dia, noche, totalConv, totalPed, totalPres, totalNuevos, totalDiff, totalAsist }
   }, [tableRows])
 
   const sharedProps = { tableRows, totals, pedidosPorSlot }
+
+  // Notifica al padre cuando cambia el total de diferencia
+  useEffect(() => {
+    if (onTotalsChange) onTotalsChange(totals.totalDiff)
+  }, [totals.totalDiff])
 
   return (
     <div className={styles.wrapper}>
