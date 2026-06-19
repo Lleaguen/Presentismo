@@ -126,11 +126,19 @@
   background: var(--green-light) !important;
 }
 
-.nuevosCell {
-  font-weight: 700;
-  color: #EA580C;
-  background: #FFF7ED !important;
-}
+/* Presentes total — semáforo por % vs convocados */
+.totalRow .presHigh     { background: #16A34A !important; color: #fff !important; font-weight: 700; }  /* ≥95% verde fuerte */
+.totalRow .presMid      { background: #86EFAC !important; color: #14532D !important; font-weight: 700; }  /* 80-95% verde claro */
+.totalRow .presLow      { background: #FDE68A !important; color: #78350F !important; font-weight: 700; }  /* 50-80% amarillo */
+.totalRow .presVeryLow  { background: #DC2626 !important; color: #fff !important; font-weight: 700; }  /* <50% rojo */
+
+/* Nuevos total */
+.totalRow .nuevosCell  { background: #FFF7ED !important; color: #EA580C !important; font-weight: 700; }
+.totalRow .nuevosAlert { background: #DC2626 !important; color: #fff !important; font-weight: 700; }
+
+/* Diferencia total */
+.totalRow .diffTotalPos { background: #16A34A !important; color: #fff !important; font-weight: 800; }
+.totalRow .diffTotalNeg { background: #DC2626 !important; color: #fff !important; font-weight: 800; }
 
 .ausentesCell {
   font-weight: 700;
@@ -215,15 +223,15 @@
 }
 
 .totalCell {
-  background: var(--ocasa-blue-dark) !important;
+  background: var(--ocasa-blue-dark);
   color: #fff;
   font-weight: 700;
   border-color: rgba(255,255,255,0.1) !important;
 }
 
-.totalRow .pctHigh { background: #166534 !important; color: #fff; }
-.totalRow .pctMid  { background: #92400E !important; color: #fff; }
-.totalRow .pctLow  { background: #991B1B !important; color: #fff; }
+.totalRow .pctHigh { background: #16A34A !important; color: #fff; }
+.totalRow .pctMid  { background: #FDE68A !important; color: #78350F; }
+.totalRow .pctLow  { background: #DC2626 !important; color: #fff; }
 .totalRow .diffPos { color: #86EFAC; }
 .totalRow .diffNeg { color: #FCA5A5; }
 

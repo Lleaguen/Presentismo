@@ -42,6 +42,28 @@ function pctClass(val, s) {
   return s.pctLow
 }
 
+// Diferencia total: rojo si negativo, verde si positivo
+function diffTotalClass(val, s) {
+  if (val > 0) return s.diffTotalPos
+  if (val < 0) return s.diffTotalNeg
+  return ''
+}
+
+// Presentes por fila: color según % respecto a convocados
+function presentesClass(pres, conv, s) {
+  if (!conv || conv === 0) return ''
+  const pct = (pres / conv) * 100
+  if (pct >= 95) return s.presHigh
+  if (pct >= 80) return s.presMid
+  if (pct >= 50) return s.presLow
+  return s.presVeryLow
+}
+
+// Nuevos: si hay valor > 0, celda roja
+function nuevosClass(val, s) {
+  return val > 0 ? s.nuevosAlert : s.nuevosCell
+}
+
 // ── Tabla (componente puro, fuera del padre para evitar remount) ─────────────
 function ScheduleTableContent({
   tableRows, totals, pedidosPorSlot,
@@ -189,9 +211,9 @@ function ScheduleTableContent({
           <td className={`${styles.td} ${styles.totalLabel}`}>TOTAL</td>
           <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalConv}</td>
           <td className={`${styles.td} ${styles.totalCell}`}>{totals.totalPed}</td>
-          <td className={`${styles.td} ${styles.totalCell} ${styles.presentes}`}>{totals.totalPres}</td>
-          <td className={`${styles.td} ${styles.totalCell} ${styles.nuevosCell}`}>{totals.totalNuevos}</td>
-          <td className={`${styles.td} ${styles.totalCell} ${diffClass(totals.totalDiff, styles)}`}>
+          <td className={`${styles.td} ${styles.totalCell} ${presentesClass(totals.totalPres, totals.totalConv, styles)}`}>{totals.totalPres}</td>
+          <td className={`${styles.td} ${styles.totalCell} ${totals.totalNuevos > 0 ? styles.nuevosAlert : styles.nuevosCell}`}>{totals.totalNuevos}</td>
+          <td className={`${styles.td} ${styles.totalCell} ${diffTotalClass(totals.totalDiff, styles)}`}>
             {totals.totalPed > 0 || totals.totalPres > 0
               ? (totals.totalDiff > 0 ? `+${totals.totalDiff}` : totals.totalDiff)
               : '—'}
