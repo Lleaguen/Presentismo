@@ -50,6 +50,16 @@ export default function App() {
     setHoraHasta,
   } = useAttendanceStats(rows)
 
+  // Cuando no hay Excel, calcular presentes/nuevos/total desde el snapshot de Supabase
+  const hasExcel = rows.length > 0
+  const snapshotPresentes = dbSnapshot.reduce((s, r) => s + (r.presentes ?? 0), 0)
+  const snapshotNuevos    = dbSnapshot.reduce((s, r) => s + (r.nuevos ?? 0), 0)
+  const snapshotConv      = dbSnapshot.reduce((s, r) => s + (r.convocados ?? 0), 0)
+
+  const kpiPresentes = hasExcel ? presentes : snapshotPresentes
+  const kpiNuevos    = hasExcel ? nuevos    : snapshotNuevos
+  const kpiTotal     = hasExcel ? rows.length : snapshotConv
+
   async function handleFileLoaded(file) {
     setLoading(true)
     setError('')
@@ -127,7 +137,7 @@ export default function App() {
             <span className={styles.sectionTitle}>Resumen del día</span>
           </div>
           <div className={styles.sectionBody}>
-            <StatsBar presentes={presentes} total={rows.length} nuevos={nuevos} />
+            <StatsBar presentes={kpiPresentes} total={kpiTotal} nuevos={kpiNuevos} />
           </div>
         </div>
 
