@@ -24,14 +24,16 @@ export default function ScheduleTable({
   onTotalsChange,
   hasData,
   onPedidosLoad,
+  onSnapshotLoad,
+  dbSnapshot = [],
 }) {
   const [modalOpen, setModalOpen] = useState(false)
   const inputRefs = useRef({})
 
-  const { tableRows, totals } = useScheduleData(excelRows, pedidosPorSlot)
+  const { tableRows, totals } = useScheduleData(excelRows, pedidosPorSlot, dbSnapshot)
 
   // Sincronización con Supabase
-  const { syncPedido } = useSupabaseSync(tableRows, hasData, onPedidosLoad)
+  const { syncPedido } = useSupabaseSync(tableRows, hasData, onPedidosLoad, onSnapshotLoad)
 
   // Notifica al padre cuando cambia el total de diferencia
   useEffect(() => {

@@ -21,16 +21,23 @@ export default function App() {
     return init
   })
   const [totalDiff, setTotalDiff] = useState(null)
+  // Snapshot de Supabase: se usa como fallback cuando no hay Excel cargado
+  const [dbSnapshot, setDbSnapshot] = useState([])
 
   // Restaura los pedidos guardados en Supabase al iniciar
   const handlePedidosLoad = useCallback((map) => {
     setPedidosPorSlot((prev) => {
       const next = { ...prev }
       Object.entries(map).forEach(([slot, val]) => {
-        if (next[slot] !== undefined) next[slot] = val > 0 ? String(val) : ''
+        if (next[slot] !== undefined) next[slot] = val
       })
       return next
     })
+  }, [])
+
+  // Restaura el snapshot completo (convocados/presentes/nuevos) desde Supabase
+  const handleSnapshotLoad = useCallback((snapshotRows) => {
+    setDbSnapshot(snapshotRows)
   }, [])
 
   const {
@@ -177,6 +184,8 @@ export default function App() {
               onTotalsChange={setTotalDiff}
               hasData={rows.length > 0}
               onPedidosLoad={handlePedidosLoad}
+              onSnapshotLoad={handleSnapshotLoad}
+              dbSnapshot={dbSnapshot}
             />
           </div>
         </div>

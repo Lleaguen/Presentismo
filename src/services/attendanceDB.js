@@ -4,11 +4,12 @@
  * Tabla: attendance_snapshots
  * Clave única: (fecha, slot)
  *
- * Dos operaciones distintas:
+ * Operaciones:
  *  - upsertExcelData   → al cargar archivo: actualiza convocados/presentes/nuevos
  *                        sin tocar pedidos ya guardados
  *  - upsertPedido      → al cambiar un input: actualiza solo pedidos de ese slot
- *  - fetchDaySnapshot  → carga los datos guardados de una fecha (para restaurar pedidos)
+ *  - fetchDaySnapshot  → carga TODOS los campos del día (para mostrar en dispositivos
+ *                        que no tienen el Excel cargado)
  */
 import { supabase } from '../lib/supabaseClient'
 
@@ -25,10 +26,7 @@ function todayISO() {
 
 /**
  * Al cargar el archivo Excel: hace upsert de convocados/presentes/nuevos
- * para cada slot del día de hoy. Si ya existe la fila (fecha+slot),
- * actualiza esos tres campos pero respeta el valor de pedidos guardado.
- *
- * @param {Array<{value: string, conv: number, pres: number, nuevo: number}>} tableRows
+ * para cada slot. Respeta el valor de pedidos ya guardado.
  */
 export async function upsertExcelData(tableRows) {
   if (!supabase) return
@@ -45,23 +43,13 @@ export async function upsertExcelData(tableRows) {
 
   const { error } = await supabase
     .from('attendance_snapshots')
-    .upsert(rows, {
-      onConflict:        'fecha,slot',
-      ignoreDuplicates:  false,
-      // Solo actualiza estos campos, deja pedidos intacto
-      // Supabase upsert actualiza todos los campos del objeto,
-      // así que excluimos pedidos del payload — si no existe la fila
-      // se crea con pedidos = 0 (default de la tabla)
-    })
+    .upsert(rows, { onConflict: 'fecha,slot', ignoreDuplicates: false })
 
   if (error) throw new Error(`Error guardando datos del CSV: ${error.message}`)
 }
 
 /**
  * Al cambiar el valor de pedidos en un slot: upsert solo del campo pedidos.
- *
- * @param {string} slot   - Valor del slot, ej: "13:00"
- * @param {number} pedidos
  */
 export async function upsertPedido(slot, pedidos) {
   if (!supabase) return
@@ -78,25 +66,20 @@ export async function upsertPedido(slot, pedidos) {
 }
 
 /**
- * Carga el snapshot de una fecha para restaurar los pedidos al iniciar.
- * Por defecto trae el día de hoy.
+ * Carga el snapshot completo del día — todos los campos.
+ * Usado para restaurar la tabla en dispositivos sin Excel.
  *
  * @param {string} [fecha] - "YYYY-MM-DD", default hoy
- * @returns {Promise<Record<string, number>>} - { "13:00": 40, "14:00": 35, ... }
+ * @returns {Promise<Array<{slot, convocados, presentes, nuevos, pedidos}>>}
  */
 export async function fetchDaySnapshot(fecha = todayISO()) {
-  if (!supabase) return {}
+  if (!supabase) return []
+
   const { data, error } = await supabase
     .from('attendance_snapshots')
-    .select('slot, pedidos')
+    .select('slot, convocados, presentes, nuevos, pedidos')
     .eq('fecha', fecha)
 
   if (error) throw new Error(`Error cargando snapshot: ${error.message}`)
-
-  // Convierte array a mapa slot → pedidos
-  const map = {}
-  ;(data ?? []).forEach((row) => {
-    map[row.slot] = row.pedidos
-  })
-  return map
+  return data ?? []
 }
