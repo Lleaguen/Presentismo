@@ -31,6 +31,7 @@ function todayISO() {
  * @param {Array<{value: string, conv: number, pres: number, nuevo: number}>} tableRows
  */
 export async function upsertExcelData(tableRows) {
+  if (!supabase) return
   const fecha = todayISO()
 
   const rows = tableRows.map((r) => ({
@@ -63,6 +64,7 @@ export async function upsertExcelData(tableRows) {
  * @param {number} pedidos
  */
 export async function upsertPedido(slot, pedidos) {
+  if (!supabase) return
   const fecha = todayISO()
 
   const { error } = await supabase
@@ -83,6 +85,7 @@ export async function upsertPedido(slot, pedidos) {
  * @returns {Promise<Record<string, number>>} - { "13:00": 40, "14:00": 35, ... }
  */
 export async function fetchDaySnapshot(fecha = todayISO()) {
+  if (!supabase) return {}
   const { data, error } = await supabase
     .from('attendance_snapshots')
     .select('slot, pedidos')
