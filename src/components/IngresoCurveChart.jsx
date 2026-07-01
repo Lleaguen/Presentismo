@@ -4,29 +4,8 @@ import {
   Tooltip, ResponsiveContainer, LabelList
 } from 'recharts'
 import { SCHEDULE_HOURS, matchSlot } from '../utils/scheduleConfig'
+import { esHoy, hoyUTC } from '../utils/dateUtils'
 import styles from './IngresoCurveChart.module.css'
-
-function parseFecha(str) {
-  const s = String(str ?? '').trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const [y, m, d] = s.split('-').map(Number)
-    return new Date(Date.UTC(y, m - 1, d))
-  }
-  const p = s.split('/')
-  if (p.length === 3) {
-    const [d, m, y] = p.map(Number)
-    return new Date(Date.UTC(y, m - 1, d))
-  }
-  return null
-}
-
-function esHoy(fechaStr, hoy) {
-  const f = parseFecha(fechaStr)
-  if (!f) return false
-  return f.getUTCFullYear() === hoy.getUTCFullYear() &&
-         f.getUTCMonth()    === hoy.getUTCMonth() &&
-         f.getUTCDate()     === hoy.getUTCDate()
-}
 
 function CustomLabel({ x, y, value, color }) {
   if (!value || value === 0) return null
@@ -96,8 +75,7 @@ export default function IngresoCurveChart({ rows, pedidosPorSlot, fullHeight = f
 
   const data = useMemo(() => {
     const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
-    const hoy = new Date()
-    const hoyUTC = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()))
+    const hoyUTCDate = hoyUTC()
 
     const convMap = {}
     const presMap = {}
@@ -112,7 +90,7 @@ export default function IngresoCurveChart({ rows, pedidosPorSlot, fullHeight = f
 
       if (!row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === '') return
       if (String(row.gerencia ?? '').trim().toUpperCase() !== 'OPSEMLI') return
-      if (!esHoy(row.fechaIngresoCitado, hoyUTC)) return
+      if (!esHoy(row.fechaIngresoCitado, hoyUTCDate)) return
       if (NEXT_DAY_SLOTS.has(slot)) return
       presMap[slot]++
     })

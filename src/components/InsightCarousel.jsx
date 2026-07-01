@@ -1,32 +1,23 @@
 import { useState } from 'react'
 import styles from './InsightCarousel.module.css'
 import { matchSlot } from '../utils/scheduleConfig'
+import { parseFecha, toMins, hoyUTC } from '../utils/dateUtils'
+import { esPresente as esPresenteUtil } from '../utils/attendanceUtils'
 
 const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
 
-function parseFecha(str) {
-  const s = String(str ?? '').trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const [y,m,d] = s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)) }
-  const p = s.split('/'); if (p.length === 3) { const [d,m,y] = p.map(Number); return new Date(Date.UTC(y,m-1,d)) }
-  return null
-}
-
 function esHoy(str) {
-  const hoy = new Date()
+  const today = hoyUTC()
   const f = parseFecha(str)
   if (!f) return false
-  return f.getUTCFullYear() === hoy.getFullYear() &&
-         f.getUTCMonth()    === hoy.getMonth() &&
-         f.getUTCDate()     === hoy.getDate()
+  return f.getUTCFullYear() === today.getUTCFullYear() &&
+         f.getUTCMonth()    === today.getUTCMonth() &&
+         f.getUTCDate()     === today.getUTCDate()
 }
 
 function esPresente(row) {
-  if (!row.horaIngresoGrabado || String(row.horaIngresoGrabado).trim() === '') return false
-  if (String(row.gerencia ?? '').trim().toUpperCase() !== 'OPSEMLI') return false
-  if (!esHoy(row.fechaIngresoCitado)) return false
-  const slot = matchSlot(String(row.horaIngresoCitado ?? '').trim())
-  if (slot && NEXT_DAY_SLOTS.has(slot)) return false
-  return true
+  const today = hoyUTC()
+  return esPresenteUtil(row, today)
 }
 
 const TABS = [
@@ -301,13 +292,7 @@ export default function InsightCarousel({ tableRows, excelRows }) {
   )
 }
 
-/* ── Helpers ── */
-function toMins(str) {
-  if (!str) return null
-  const parts = String(str).trim().split(':').map(Number)
-  if (parts.length < 2 || isNaN(parts[0])) return null
-  return parts[0] * 60 + (parts[1] || 0)
-}
+/* ── Helpers locales ── */
 
 function exactSlot(hora, tableRows) {
   const mins = toMins(hora)

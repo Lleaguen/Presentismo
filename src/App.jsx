@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import FileUploader from './components/FileUploader'
 import StatsBar from './components/StatsBar'
 import ScheduleTable from './components/ScheduleTable'
 import AttendanceTable from './components/AttendanceTable'
 import IngresoCurveChart from './components/IngresoCurveChart'
 import { parseExcelFile } from './utils/parseExcel'
-import { SCHEDULE_HOURS, matchSlot } from './utils/scheduleConfig'
+import { SCHEDULE_HOURS } from './utils/scheduleConfig'
+import { useAttendanceStats } from './hooks/useAttendanceStats'
 import ocasaLogo from './assets/Ocasa.png'
 import styles from './App.module.css'
 
@@ -21,63 +22,26 @@ export default function App() {
   })
   const [totalDiff, setTotalDiff] = useState(null)
 
-  // Filtro de rango horario para la tabla
-  const [horaDesde, setHoraDesde] = useState('')
-  const [horaHasta, setHoraHasta] = useState('')
-
-  const toMins = (str) => {
-    if (!str) return null
-    const parts = String(str).trim().split(':').map(Number)
-    if (parts.length < 2 || isNaN(parts[0])) return null
-    return parts[0] * 60 + (parts[1] || 0)
-  }
-
-  const rowsFiltrados = useMemo(() => {
-    if (!horaDesde && !horaHasta) return rows
-    const desde = toMins(horaDesde)
-    const hasta  = toMins(horaHasta)
-    return rows.filter((r) => {
-      const m = toMins(String(r.horaIngresoCitado ?? '').trim())
-      if (m === null) return false
-      if (desde !== null && m < desde) return false
-      if (hasta  !== null && m > hasta)  return false
-      return true
+  // Restaura los pedidos guardados en Supabase al iniciar
+  const handlePedidosLoad = useCallback((map) => {
+    setPedidosPorSlot((prev) => {
+      const next = { ...prev }
+      Object.entries(map).forEach(([slot, val]) => {
+        if (next[slot] !== undefined) next[slot] = val > 0 ? String(val) : ''
+      })
+      return next
     })
-  }, [rows, horaDesde, horaHasta])
+  }, [])
 
-  const presentes = useMemo(() => {
-    const NEXT_DAY_SLOTS = new Set(['0:00', '6:00', '7:00'])
-    const hoy = new Date()
-    const hoyUTC = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()))
-    const parseFecha = (str) => {
-      const s = String(str ?? '').trim()
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const [y,m,d] = s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)) }
-      const p = s.split('/'); if (p.length === 3) { const [d,m,y] = p.map(Number); return new Date(Date.UTC(y,m-1,d)) }
-      return null
-    }
-    const esHoy = (str) => {
-      const f = parseFecha(str)
-      if (!f) return false
-      return f.getUTCFullYear() === hoyUTC.getUTCFullYear() &&
-             f.getUTCMonth()    === hoyUTC.getUTCMonth() &&
-             f.getUTCDate()     === hoyUTC.getUTCDate()
-    }
-    return rows.filter((r) => {
-      if (!r.horaIngresoGrabado || String(r.horaIngresoGrabado).trim() === '') return false
-      if (String(r.gerencia ?? '').trim().toUpperCase() !== 'OPSEMLI') return false
-      if (!esHoy(r.fechaIngresoCitado)) return false
-      const slot = matchSlot(String(r.horaIngresoCitado ?? '').trim())
-      if (slot && NEXT_DAY_SLOTS.has(slot)) return false
-      return true
-    }).length
-  }, [rows])
-
-  const nuevos = useMemo(() =>
-    rows.filter((r) =>
-      String(r.sector ?? '').trim().toUpperCase() === 'NUEVO' &&
-      r.horaIngresoGrabado && String(r.horaIngresoGrabado).trim() !== ''
-    ).length
-  , [rows])
+  const {
+    rowsFiltrados,
+    presentes,
+    nuevos,
+    horaDesde,
+    horaHasta,
+    setHoraDesde,
+    setHoraHasta,
+  } = useAttendanceStats(rows)
 
   async function handleFileLoaded(file) {
     setLoading(true)
@@ -169,11 +133,27 @@ export default function App() {
             {/* Rango horario */}
             <div className={styles.rangeFilter}>
               <span className={styles.rangeLabel}>Rango</span>
-              <input type="time" value={horaDesde} onChange={(e) => setHoraDesde(e.target.value)} className={styles.rangeInput} />
+              <input
+                type="time"
+                value={horaDesde}
+                onChange={(e) => setHoraDesde(e.target.value)}
+                className={styles.rangeInput}
+              />
               <span className={styles.rangeSep}>—</span>
-              <input type="time" value={horaHasta} onChange={(e) => setHoraHasta(e.target.value)} className={styles.rangeInput} />
+              <input
+                type="time"
+                value={horaHasta}
+                onChange={(e) => setHoraHasta(e.target.value)}
+                className={styles.rangeInput}
+              />
               {(horaDesde || horaHasta) && (
-                <button className={styles.rangeClearBtn} onClick={() => { setHoraDesde(''); setHoraHasta('') }} title="Quitar">✕</button>
+                <button
+                  className={styles.rangeClearBtn}
+                  onClick={() => { setHoraDesde(''); setHoraHasta('') }}
+                  title="Quitar"
+                >
+                  ✕
+                </button>
               )}
             </div>
 
@@ -189,7 +169,15 @@ export default function App() {
           </div>
 
           <div className={styles.sectionBody}>
-            <ScheduleTable excelRows={rowsFiltrados} rows={rowsFiltrados} pedidosPorSlot={pedidosPorSlot} onPedidosChange={setPedidosPorSlot} onTotalsChange={setTotalDiff} />
+            <ScheduleTable
+              excelRows={rowsFiltrados}
+              rows={rowsFiltrados}
+              pedidosPorSlot={pedidosPorSlot}
+              onPedidosChange={setPedidosPorSlot}
+              onTotalsChange={setTotalDiff}
+              hasData={rows.length > 0}
+              onPedidosLoad={handlePedidosLoad}
+            />
           </div>
         </div>
 
